@@ -10,8 +10,19 @@
 HINSTANCE hInst;                                // current instance
 WCHAR szTitle[MAX_LOADSTRING];                  // The title bar text
 WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
-HBITMAP mainBitmap; // the bitmap we will be blitting
-UINT_PTR timer_ptr = 0;
+
+#define FPS 30    // frames per second for the timer
+
+HBITMAP mainBitmap; // the bitmap we will be blitting, from CreateDIBSection
+BYTE *bitmapBits; // the pixels of our DIBitmap.
+constexpr BYTE palette[] = { 
+    0x00,0x00,0x00,  0x00,0x00,0xaa,  0x00,0xaa,0x00,  0x00,0xaa,0xaa,
+    0xaa,0x00,0x00,  0xaa,0x00,0xaa,  0xaa,0x55,0x00,  0xaa,0xaa,0xaa,
+    0x55,0x55,0x55,  0x55,0x55,0xff,  0x55,0xff,0x55,  0x55,0xff,0xff,
+    0xff,0x55,0x55,  0xff,0x55,0xff,  0xff,0xff,0x55,  0xff,0xff,0xff
+}; // the EGA palette
+
+UINT_PTR timer_ptr = 0;  // the timer we use to update our screen
 
 // Forward declarations of functions included in this code module:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
@@ -27,8 +38,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
 
-    // TODO: Place code here.
-
     // Initialize global strings
     LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
     LoadStringW(hInstance, IDC_TESTGDI, szWindowClass, MAX_LOADSTRING);
@@ -42,12 +51,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     }
 
     HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_TESTGDI));
-
-    HDC hdc = GetDC(hwnd);
-    mainBitmap = CreateCompatibleBitmap(hdc, 160, 200);
-    ReleaseDC(hwnd, hdc);
-
-    timer_ptr = SetTimer(hwnd, 2, 1000 / 60, NULL);
     
     MSG msg;
 
@@ -64,7 +67,45 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     return (int) msg.wParam;
 }
 
+// FUNCTION CreateTheBitmap() ... create the DIBSection...
+void CreateTheBitmap(HWND hwnd) {
+    HDC hdc = GetDC(hwnd);
+    BITMAPINFO pbmi;
+    BITMAPINFOHEADER *bmih = &(pbmi.bmiHeader);
+    bmih->biSize = sizeof(BITMAPINFOHEADER);
+    bmih->biWidth = 160;
+    bmih->biHeight = 200;
+    bmih->biPlanes = 1;
+    bmih->biBitCount = 24;
+    bmih->biCompression = BI_RGB;
+    bmih->biSizeImage = 0;
+    bmih->biXPelsPerMeter = 0;
+    bmih->biYPelsPerMeter = 0;
+    bmih->biClrUsed = 0;
+    bmih->biClrImportant = 0;
+    mainBitmap = CreateDIBSection(hdc, &pbmi, 0, (void**) & bitmapBits, NULL, 0);
+    ReleaseDC(hwnd, hdc);
+}
 
+// draw a diagonal pattern on the bitmap, of all EGA colors...
+void UpdateTheBitmap() {
+    static int paletteOffset = 0;
+
+    int ip = paletteOffset;
+    int ib = 0;
+    const int end = 160 * 200 * 3;
+    for(int y = 0; y < 200; ++y) {
+        for (int x = 0; x < (160 * 3); ++x) {
+            bitmapBits[ib++] = palette[ip++];
+            if (ip >= sizeof(palette)) ip = 0;
+        }
+        ip += 3;
+        if (ip >= sizeof(palette)) ip = 0;
+    }
+
+    paletteOffset += 3;
+    if (paletteOffset >= sizeof(palette)) paletteOffset = 0;
+}
 
 //
 //  FUNCTION: MyRegisterClass()
@@ -134,6 +175,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     switch (message)
     {
+    case WM_CREATE:
+        {
+            CreateTheBitmap(hWnd);
+            UpdateTheBitmap();
+            timer_ptr = SetTimer(hWnd, 2, 1000 / FPS, NULL);
+        }
+        break;
     case WM_COMMAND:
         {
             int wmId = LOWORD(wParam);
@@ -142,7 +190,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
             case ID_FILE_STOPTIMER:
                 if (timer_ptr > 0) { KillTimer(hWnd, timer_ptr); timer_ptr = 0; }
-                else { timer_ptr = SetTimer(hWnd, 2, 1000 / 60, NULL);  }
+                else { timer_ptr = SetTimer(hWnd, 2, 1000 / FPS, NULL);  }
                 break;
             case IDM_ABOUT:
                 DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
@@ -156,21 +204,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         break;
     case WM_TIMER:
-        {
-            // update the bitmap
-          HDC hwndDC = GetDC(hWnd);
-          HDC memDC = CreateCompatibleDC(hwndDC);
-          HBITMAP hOldBmp = (HBITMAP)SelectObject(memDC, mainBitmap);
-          HBRUSH brush = CreateSolidBrush(RGB(rand() % 256, rand() % 256, rand() % 256));
-          HGDIOBJ oldObj = SelectObject(memDC, brush);
-          Ellipse(memDC, rand() % 60, rand() % 20, (rand() % 100)+60, (rand() % 180) + 12);
-          SelectObject(memDC, oldObj);
-          SelectObject(memDC, hOldBmp);
-          DeleteObject(brush);
-          DeleteDC(memDC);
-          ReleaseDC(hWnd, hwndDC);
-          InvalidateRect(hWnd, NULL, FALSE);
-        }
+        UpdateTheBitmap();
+        InvalidateRect(hWnd, NULL, FALSE); 
         break;
     case WM_PAINT:
         {
