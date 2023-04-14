@@ -1,10 +1,10 @@
 #!/usr/bin/perl
 use feature say;
 
-$book = "Ladder of Lights (WG Gray)";
+$book = "Mystical Qabalah (Fortune)";
 $contents = "Category:$book";
 $nav = "$book Nav";
-$parenthetical = "Ladder of Lights";
+$parenthetical = "Mystical Qabalah";
 
 while(<>) {
   chomp;
@@ -22,7 +22,8 @@ while(<>) {
     say "| 1 = [[$lines[0] ($parenthetical)|$lines[0]]]";
   }
   say "| 2 = [[$lines[$#lines] ($parenthetical)|$lines[$#lines]]]";
-  say "}}\n\n"
+  say "}}\n";
+  say "&rarr; [[$lines[$#lines] ($parenthetical)|$lines[$#lines]]] &rarr;\n\n";
 }
 # now we need the last one done
 if(scalar @lines == 3) {
@@ -30,8 +31,13 @@ if(scalar @lines == 3) {
  say "{{$nav";
  say "| 1 = [[$lines[1] ($parenthetical)|$lines[1]]]";
  say "| 2 = [[:$contents|Contents]]";
- say "}}\n\n"
+ say "}}\n\n";
 }
 
 # now put out the TOC entries
-say for @toc;
+my $spaced = $contents =~ s/ /_/gr;
+say "~~~ the Table of contents is $spaced ~~~";
+say "* $_" for @toc;
+
+$spaced = $nav =~ s/ /_/gr;
+say "\n\nNav page is $spaced";
