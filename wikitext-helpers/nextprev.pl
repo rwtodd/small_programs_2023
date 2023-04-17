@@ -1,41 +1,35 @@
 #!/usr/bin/perl
 use feature say;
 
-$book = "Mystical Qabalah (Fortune)";
-$contents = "Category:$book";
+$title = "Mystical Qabalah";
+$parens = "Fortune";
+$book = "$title ($parens)";
+push @toc, "[[:Category:$book|Contents]]";
 $nav = "$book Nav";
-$parenthetical = "Mystical Qabalah";
 
 while(<>) {
   chomp;
-  push @toc, "[[$_ ($parenthetical)|$_]]";
+  push @toc, "[[$_ ($title)|$_]]";
+  next if (scalar @toc == 2);
 
-  if(scalar @lines == 3) { shift @lines; }
-  push @lines, $_;
-  next if (scalar @lines == 1);
-
-  say "# for $lines[$#lines - 1] .... ";
+  say "# for $toc[$#toc - 1] .... ";
   say "{{$nav";
-  if(scalar @lines == 2) {
-    say "| 1 = [[:$contents|Contents]]";
-  } else {
-    say "| 1 = [[$lines[0] ($parenthetical)|$lines[0]]]";
-  }
-  say "| 2 = [[$lines[$#lines] ($parenthetical)|$lines[$#lines]]]";
+  say "| 1 = $toc[$#toc-2]";
+  say "| 2 = $toc[$#toc]";
   say "}}\n";
-  say "&rarr; [[$lines[$#lines] ($parenthetical)|$lines[$#lines]]] &rarr;\n\n";
+  say "&rarr; $toc[$#toc] &rarr;\n\n";
 }
 # now we need the last one done
-if(scalar @lines == 3) {
- say "# for $lines[2] .... ";
- say "{{$nav";
- say "| 1 = [[$lines[1] ($parenthetical)|$lines[1]]]";
- say "| 2 = [[:$contents|Contents]]";
- say "}}\n\n";
-}
+say "# for $toc[$#toc] .... ";
+say "{{$nav";
+say "| 1 = $toc[$#toc-1]";
+say "| 2 = $toc[0]";
+say "}}\n\n";
 
 # now put out the TOC entries
-my $spaced = $contents =~ s/ /_/gr;
+my $spaced = shift @toc;
+$spaced =~ s/ /_/g;
+$spaced =~ s/\[\[: ([^|]+) \|Co .* /$1/x;
 say "~~~ the Table of contents is $spaced ~~~";
 say "* $_" for @toc;
 
