@@ -1,37 +1,46 @@
 #!/usr/bin/perl
-use feature say;
+use v5.30;
 
-$title = "Mystical Qabalah";
-$parens = "Fortune";
-$book = "$title ($parens)";
-push @toc, "[[:Category:$book|Contents]]";
-$nav = "$book Nav";
+# set these two variables for each book
+my $short_title = "Mystical Qabalah";
+my $book = "$short_title (Fortune)";
+
+my @toc = ("[[:Category:$book|Contents]]");
+my $nav = "$book Nav";
 
 while(<>) {
   chomp;
-  push @toc, "[[$_ ($title)|$_]]";
-  next if (scalar @toc == 2);
+  push @toc, "[[$_ ($short_title)|$_]]";
+  next if ($#toc == 1);
 
-  say "# for $toc[$#toc - 1] .... ";
-  say "{{$nav";
-  say "| 1 = $toc[$#toc-2]";
-  say "| 2 = $toc[$#toc]";
-  say "}}\n";
-  say "&rarr; $toc[$#toc] &rarr;\n\n";
+  print <<~"ENTRY";
+    # for $toc[$#toc-1] .... 
+    {{$nav
+    | 1 = $toc[$#toc-2]
+    | 2 = $toc[$#toc]
+    }}
+    
+    &rarr; $toc[$#toc] &rarr;
+    
+    ENTRY
 }
 # now we need the last one done
-say "# for $toc[$#toc] .... ";
-say "{{$nav";
-say "| 1 = $toc[$#toc-1]";
-say "| 2 = $toc[0]";
-say "}}\n\n";
+print <<~"LASTENTRY";
+   # for $toc[$#toc] .... 
+   {{$nav
+   | 1 = $toc[$#toc-1]
+   | 2 = $toc[0]
+   }}
+   
+   LASTENTRY
 
 # now put out the TOC entries
 my $spaced = shift @toc;
-$spaced =~ s/ /_/g;
 $spaced =~ s/\[\[: ([^|]+) \|Co .* /$1/x;
-say "~~~ the Table of contents is $spaced ~~~";
-say "* $_" for @toc;
+$spaced =~ tr/ /_/;
 
-$spaced = $nav =~ s/ /_/gr;
-say "\n\nNav page is $spaced";
+print "~~~ the Table of contents is $spaced ~~~\n";
+print "* $_\n" for @toc;
+
+$nav =~ tr/ /_/;
+print "\n\nNav page is $nav\n";

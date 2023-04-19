@@ -1,25 +1,22 @@
 #!/usr/bin/env lua
 
-local title = "Mystical Qabalah"
-local parens = "Fortune"
+local short_title = "pil4e" -- goes in every chapter heading
+local book = "Programming in Lua 4ed (pil4e)"
 
-local book = string.format("%s (%s)",title,parens)
 local nav = book .. " Nav"
 local toc = { "[[:Category:" .. book .. "|Contents]]" }
 
-for line in io.lines()
-  do
-    table.insert(toc, string.format("[[%s (%s)|%s]]",line,title,line))
-    if #toc > 2
-      then
-        print("# for (" .. toc[#toc - 1] .. ") ....")
-        print("{{" .. nav)
-        print("| 1 = " .. toc[#toc - 2])
-        print("| 2 = " .. toc[#toc])
-        print("}}\n")
-        print(string.format("&rarr; %s &rarr;\n\n",toc[#toc]))
-      end
+for line in io.lines() do
+  table.insert(toc, string.format("[[%s (%s)|%s]]",line,short_title,line))
+  if #toc > 2 then
+    print("# for (" .. toc[#toc - 1] .. ") ....")
+    print("{{" .. nav)
+    print("| 1 = " .. toc[#toc - 2])
+    print("| 2 = " .. toc[#toc])
+    print("}}\n")
+    print(string.format("&rarr; %s &rarr;\n\n",toc[#toc]))
   end
+end
 
 -- output the last one
 print("# for " .. toc[#toc] .. " ....")
