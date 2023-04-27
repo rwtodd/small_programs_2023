@@ -2,10 +2,10 @@
 use v5.30;
 
 # ~~~~~~~~~~~~~(( F I L L   O U T   T H I S   P A R T ))~~~~~~~~~~~~~~
-my $short_title = "Mystical Qabalah";  # goes in every chapter heading
-my $full_title = $short_title;         # often the same as short title
-my $book = "$full_title (Fortune)";
-my @categories  = qw//;
+my $short_title = "Pictorial Key";  # goes in every chapter heading
+my $full_title = "Pictorial Key to the Tarot";         # often the same as short title
+my $book = "$full_title (AE Waite)";
+my @categories  = qw/Tarot/;
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 my $nav = "$book Nav";
@@ -50,7 +50,7 @@ print "* $_\n" for @toc;
 $nav =~ tr/ /_/;
 print <<~"NAVEND";
 
-Nav page is $nav
+Nav page is Template:$nav
 
 {| class="infobox wikitable floatright"
 |-
