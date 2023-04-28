@@ -13,45 +13,45 @@ my @toc = ( make_raw_entry("Contents", "[[:Category:$book|Contents]]") );
 unshift @categories, $book;
 my $catlist = join ' ', (map "[[Category:$_]]", @categories);
 
+my $underscored = $nav =~ tr/ /_/r;
+print <<~"NAVEND";
+   Nav page is Template:$underscored
+
+   {| class="infobox wikitable floatright"
+   |-
+   ! scope="colgroup" colspan="2" | $full_title 
+   |-
+   | style="text-align:center" colspan="2" | [[:Category:$book|Table of Contents]]
+   |-
+   | style="text-align:left" | &larr;&nbsp;{{{1}}}
+   | style="text-align:right" | {{{2}}}&nbsp;&rarr;
+   |}<includeonly>
+   $catlist
+   </includeonly>
+   
+   NAVEND
+
 while(<>) {
   chomp;
   push @toc, make_entry($_);
   next if ($#toc == 1);
   &print_entry;
 }
-push @toc, $toc[0]; # re-add the contents
-&print_entry;  # print the last entry to wrap around to the table of contents
+push @toc, $toc[0]; # last entry should wrap to TOC
+&print_entry;
 
 # now put out the TOC entries
-my $spaced = $book =~ tr/ /_/r;
+$underscored = $book =~ tr/ /_/r;
 shift @toc; pop @toc;  # drop the TOC entries at the front and back
-print "~~~ the Table of contents is Category:$spaced ~~~\n";
+print "~~~ the Table of contents is Category:$underscored ~~~\n";
 print "* $_->{long}\n" for @toc;
 
-$nav =~ tr/ /_/;
-print <<~"NAVEND";
-
-Nav page is Template:$nav
-
-{| class="infobox wikitable floatright"
-|-
-! scope="colgroup" colspan="2" | $full_title 
-|-
-| style="text-align:center" colspan="2" | [[:Category:$book|Table of Contents]]
-|-
-| style="text-align:left" | &larr;&nbsp;{{{1}}}
-| style="text-align:right" | {{{2}}}&nbsp;&rarr;
-|}<includeonly>
-$catlist
-</includeonly>
-NAVEND
-
-sub make_raw_entry($name,$text) {   # where we want to control the exact text and name
+sub make_raw_entry($name,$text) {   # raw means unedited from user
   { name => $name, long => $text, short => $text };
 }
 
-sub make_entry($line) {       # we want to generate appropriate text from a name
-  my ($long_str, $short_str) = split /\s*\|\|\s*/, $line, 2;
+sub make_entry {   # generate appropriate text from a name
+  my ($long_str, $short_str) = split /\s*\|\|\s*/, shift, 2;
   $short_str //= $long_str;
   if (length $short_str > 20) {
     $short_str =~ s/^(?:The|An?) //;
