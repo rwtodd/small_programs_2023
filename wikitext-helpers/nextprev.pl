@@ -1,5 +1,5 @@
-#!/usr/bin/perl
-use v5.30;
+#!/usr/bin/env perl
+use v5.36;
 
 # ~~~~~~~~~~~~~(( F I L L   O U T   T H I S   P A R T ))~~~~~~~~~~~~~~
 my $short_title = "Necronomicon";  # goes in every chapter heading
@@ -17,10 +17,10 @@ while(<>) {
   chomp;
   push @toc, make_entry($_);
   next if ($#toc == 1);
-  print_entry();
+  &print_entry;
 }
 push @toc, $toc[0]; # re-add the contents
-print_entry();  # print the last entry to wrap around to the table of contents
+&print_entry;  # print the last entry to wrap around to the table of contents
 
 # now put out the TOC entries
 my $spaced = $book =~ tr/ /_/r;
@@ -46,13 +46,12 @@ $catlist
 </includeonly>
 NAVEND
 
-sub make_raw_entry {   # where we want to control the exact text and name
-  my ($name,$text) = @_;
-  return { name => $name, long => $text, short => $text };
+sub make_raw_entry($name,$text) {   # where we want to control the exact text and name
+  { name => $name, long => $text, short => $text };
 }
 
-sub make_entry {       # we want to generate appropriate text from a name
-  my ($long_str, $short_str) = split /\s*\|\|\s*/, shift, 2;
+sub make_entry($line) {       # we want to generate appropriate text from a name
+  my ($long_str, $short_str) = split /\s*\|\|\s*/, $line, 2;
   $short_str //= $long_str;
   if (length $short_str > 20) {
     $short_str =~ s/^(?:The|An?) //;
@@ -63,7 +62,7 @@ sub make_entry {       # we want to generate appropriate text from a name
 	   short => "[[$long_str ($short_title)|$short_str]]" };
 }
 
-sub print_entry {
+sub print_entry() {
   my ($prv,$cur,$nxt) = @toc[$#toc-2 .. $#toc];
   print <<~"ENTRY";
     ### for ($cur->{name}) ... 
