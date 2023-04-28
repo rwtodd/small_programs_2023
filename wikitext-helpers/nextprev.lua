@@ -10,7 +10,7 @@ function shorten_text(t)
   -- the user may have given a starting mark...
   local shorter = t:gsub("^The ",""):gsub("^An? ","")
   if #shorter > 20 then
-    shorter = shorter:sub(1,17) .. "&hellip;"
+    shorter = shorter:sub(1,18) .. "&hellip;"
   end
   return shorter
 end
@@ -23,7 +23,7 @@ function make_lsentry(text)
      long_text = text:sub(1,mstart - 1)
      short_text = text:sub(mend + 1)
   end
-  if #short_text > 17 then
+  if #short_text > 20 then
      short_text = shorten_text(short_text)
   end
   return {
@@ -43,7 +43,7 @@ local toc = { make_raw_lsentry("Contents", "[[:Category:" .. book .. "|Contents]
 for line in io.lines() do
   table.insert(toc, make_lsentry(line))
   if #toc > 2 then
-    io.write("### for (",toc[#toc - 1].name,") ....\n")
+    io.write("### for (",toc[#toc - 1].name,") ...\n")
     io.write("{{",nav,'\n')
     io.write("| 1 = ",toc[#toc-2].short, '\n')
     io.write("| 2 = ",toc[#toc].short,'\n')
@@ -53,7 +53,7 @@ for line in io.lines() do
 end
 
 -- output the last one
-io.write("### for ",toc[#toc].name," ....\n")
+io.write("### for (",toc[#toc].name,") ...\n")
 io.write("{{",nav,'\n')
 io.write("| 1 = ",toc[#toc-1].short,'\n')
 io.write("| 2 = ",toc[1].short,'\n')
@@ -63,7 +63,7 @@ local spaced = toc[1].long:gsub("^..:([^|]+)|Con.+","%1"):gsub(" ","_")
 io.write("~~~ the Table of contents is ", spaced, " ~~~\n")
 for i=2,#toc do io.write("* ",toc[i].long,'\n') end
 
-io.write("\n\nNav is Template:",nav:gsub(" ","_"),'\n')
+io.write("\n\nNav page is Template:",nav:gsub(" ","_"),'\n')
 io.write(string.format([==[
 {| class="infobox wikitable floatright"
 |-
