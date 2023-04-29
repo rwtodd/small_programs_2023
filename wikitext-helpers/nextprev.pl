@@ -5,13 +5,12 @@ use v5.36;
 my $short_title = "Necronomicon";  # goes in every chapter heading
 my $full_title = $short_title;         # often the same as short title
 my $book = "$full_title (Simon)";
-my @categories  = qw//;
+my @categories  = qw/one two/;
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 my $nav = "$book Nav";
 my @toc = ( make_raw_entry("Contents", "[[:Category:$book|Contents]]") );
 unshift @categories, $book;
-my $catlist = join ' ', (map "[[Category:$_]]", @categories);
 
 my $underscored = $nav =~ tr/ /_/r;
 print <<~"NAVEND";
@@ -26,7 +25,7 @@ print <<~"NAVEND";
    | style="text-align:left" | &larr;&nbsp;{{{1}}}
    | style="text-align:right" | {{{2}}}&nbsp;&rarr;
    |}<includeonly>
-   $catlist
+   @{[ join ' ', (map "[[Category:$_]]", @categories) ]}
    </includeonly>
    
    NAVEND
@@ -44,7 +43,7 @@ push @toc, $toc[0]; # last entry should wrap to TOC
 $underscored = $book =~ tr/ /_/r;
 shift @toc; pop @toc;  # drop the TOC entries at the front and back
 print "~~~ the Table of contents is Category:$underscored ~~~\n";
-print "* $_->{long}\n" for @toc;
+print "* $$_{long}\n" for @toc;
 
 sub make_raw_entry($name,$text) {   # raw means unedited from user
   { name => $name, long => $text, short => $text };
@@ -65,13 +64,13 @@ sub make_entry {   # generate appropriate text from a name
 sub print_entry() {
   my ($prv,$cur,$nxt) = @toc[$#toc-2 .. $#toc];
   print <<~"ENTRY";
-    ### for ($cur->{name}) ... 
+    ### for ($$cur{name}) ... 
     {{$nav
-    | 1 = $prv->{short}
-    | 2 = $nxt->{short}
+    | 1 = $$prv{short}
+    | 2 = $$nxt{short}
     }}
     
-    &rarr; $nxt->{long} &rarr;
+    &rarr; $$nxt{long} &rarr;
     
     ENTRY
 }
