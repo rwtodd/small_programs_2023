@@ -1,24 +1,42 @@
 #!/usr/bin/env perl
 use v5.36;
 
-# ~~~~~~~~~~~~~(( F I L L   O U T   T H I S   P A R T ))~~~~~~~~~~~~~~
-my $short_title = "Necronomicon";  # goes in every chapter heading
-my $full_title = $short_title;         # often the same as short title
-my $book = "$full_title (Simon)";
-my @categories  = qw/one two/;
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ok... get config values from the top of the file...
+my %config = (
+  full_title => "unknown!",   # used in the title of the book
+  short_title => "unknown!",  # parenthetically on every page (if not given it will
+                              #   be set to match the full title)
+  author => "unknown!",       # used as part of the book category
+  categories => ""            # any additional categories to put every page in
+);
 
+while(<>) {
+  chomp;
+  last if /^-+$/;
+  my ($k,$v) = split /\s*=>\s*/, $_, 2;
+  $k = lc $k;
+  $k =~ tr/ /_/;
+  $v =~ s/\s*$//;
+  die "Unknown config entry <$k>!" if(!exists $config{$k});
+  $config{$k} = $v;
+}
+
+# default the short title if needed
+$config{short_title} = $config{full_title} if ($config{short_title} eq  "unknown!");
+
+my $book = "$config{full_title} ($config{author})";
 my $nav = "$book Nav";
 my @toc = ( make_raw_entry("Contents", "[[:Category:$book|Contents]]") );
-unshift @categories, $book;
+my @categories = ($book, split /\s*\|\|\s*/, $config{categories});
 
+# ---- Here's the Navigation Template
 my $underscored = $nav =~ tr/ /_/r;
 print <<~"NAVEND";
    Nav page is Template:$underscored
 
    {| class="infobox wikitable floatright"
    |-
-   ! scope="colgroup" colspan="2" | $full_title 
+   ! scope="colgroup" colspan="2" | $config{full_title}
    |-
    | style="text-align:center" colspan="2" | [[:Category:$book|Table of Contents]]
    |-
@@ -30,6 +48,7 @@ print <<~"NAVEND";
    
    NAVEND
 
+# ---- Now read the toc lines, emitting wikitext fragments
 while(<>) {
   chomp;
   push @toc, make_entry($_);
@@ -39,11 +58,15 @@ while(<>) {
 push @toc, $toc[0]; # last entry should wrap to TOC
 &print_entry;
 
-# now put out the TOC entries
+# ---- Now put out the TOC entries for the main table of contents
 $underscored = $book =~ tr/ /_/r;
 shift @toc; pop @toc;  # drop the TOC entries at the front and back
 print "~~~ the Table of contents is Category:$underscored ~~~\n";
 print "* $$_{long}\n" for @toc;
+
+##########################
+# Subroutines
+##########################
 
 sub make_raw_entry($name,$text) {   # raw means unedited from user
   { name => $name, long => $text, short => $text };
@@ -57,8 +80,8 @@ sub make_entry {   # generate appropriate text from a name
     substr($short_str,18) = "&hellip;" if (length $short_str > 20);
   }
   return { name  => $long_str, 
-	   long  => "[[$long_str ($short_title)|$long_str]]", 
-	   short => "[[$long_str ($short_title)|$short_str]]" };
+	   long  => "[[$long_str ($config{short_title})|$long_str]]", 
+	   short => "[[$long_str ($config{short_title})|$short_str]]" };
 }
 
 sub print_entry() {
@@ -74,3 +97,26 @@ sub print_entry() {
     
     ENTRY
 }
+
+__END__
+
+=head1 NextPrev.pl
+
+This is a script to generate the code excerpts needed for the I<Mediawiki> site
+books. Here is an example of an good input file:
+
+  full title => The Long Form of the Title
+  short title => A shorter one (optional!)
+  author => Author's name
+  categories =>  Categories || split || by || pipes (optional!)
+  ----
+  Chapter 1's Name
+  Chapter 2's Name || Short Version
+  Chapter 3's Name
+  etc.
+
+That's all there is to it! By default, the C<short_title> will be set equal to
+the C<full title>, and the C<categories> list will have the book itself first
+(no need to specify that).
+
+=cut
