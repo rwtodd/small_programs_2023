@@ -26,4 +26,8 @@ a good job of using entities for symbols in code fragments.  Since wikitext is j
 a stripped-down HTML anyway, this script gets me most of the way to where I want to
 take it.
 
+Use it as a filter for I<pod2html>:
+
+   pod2html {podfile} | podhtml2wiki.pl > {outfile}
+
 =cut
