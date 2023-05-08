@@ -4,9 +4,7 @@ say "; Release Date: xxxx-xx-xx\n\n== Lyrics ==";
 my @buffer;  # holds the lines we accumulate
 
 sub out_buffer() {
-  if(@buffer) {
-    say join("<br/>\n", @buffer), "\n";
-  }
+  say join("<br/>\n", @buffer), "\n" if @buffer;
   @buffer = ();
 }
 
