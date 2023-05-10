@@ -3,11 +3,6 @@ use v5.36;
 use List::Util qw/min max/;
 use constant FORTY => (40*60);
 
-say << 'FORMAT';
-input format:  HH:MMam - HH:MMpm MM
-               [start] - [end]   [lunch]
-FORMAT
-
 my $line_no = 0;
 my $running_total = 0;
 
@@ -24,14 +19,14 @@ while(<>) {
     (?<lunch>\d{1,4})
   /x or die "Bad Input, line $line_no... <$_>";
 
-  my $minutes = minutes_since_midnight($+{h2},$+{m2},$+{ap2}) - 
-    minutes_since_midnight($+{h1},$+{m1},$+{ap1}) -
+  my $minutes = minutes_since_midnight(@+{qw/h2 m2 ap2/}) - 
+    minutes_since_midnight(@+{qw/h1 m1 ap1/}) -
     $+{lunch};
   say "\nDay $line_no: $minutes minutes (from input <$_>)";
 
-  my $remaining_reg = max(FORTY - $running_total,0);
-  report(min($minutes,$remaining_reg),'REG');
-  report(max($minutes - $remaining_reg, 0),'OT');
+  my $remaining_reg = max(FORTY - $running_total, 0);
+  report(min($minutes, $remaining_reg), 'REG');
+  report(max($minutes - $remaining_reg, 0), 'OT');
   $running_total += $minutes;
 }
 
