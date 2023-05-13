@@ -43,7 +43,7 @@ if($options{n}) {
 
      {| class="infobox wikitable floatright"
      |-
-     ! scope="col" colspan="2" | $config{full_title}
+     ! scope="colgroup" colspan="2" | $config{full_title}
      |-
      | style="text-align:center" colspan="2" | [[:Category:$book|Table of Contents]]
      |-

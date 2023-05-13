@@ -46,7 +46,7 @@ if($options{n}) {
 
      {| class="infobox wikitable floatright"
      |-
-     ! scope="col" colspan="5" | BtVS Script
+     ! scope="colgroup" colspan="5" | BtVS Script
      |-
      | style="text-align:center" colspan="5" | {{{1}}}
      |-
