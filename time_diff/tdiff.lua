@@ -26,18 +26,10 @@ for l in io.lines() do
   io.write("\nDay ",which_line," input: ", l, "\n")
   local m1,m2 = normalize_time(h1,m1,ap1), normalize_time(h2,m2,ap2)
   local minutes = m2 - m1 - lunch
-  local today = totalmins + minutes 
-  if today <= forty_hours then
-    report(which_line, minutes, 'REG')
-  elseif totalmins < forty_hours  then
-    local remainder = forty_hours - totalmins
-    local ot = minutes - remainder
-    report(which_line, remainder, 'REG')
-    report(which_line, ot, 'OT')
-  else
-    report(which_line, minutes, 'OT')
-  end
-  totalmins = today
+  local remaining_reg = math.max(forty_hours - totalmins, 0)
+  report(which_line, math.min(minutes,remaining_reg), 'REG')
+  report(which_line, math.max(minutes-remaining_reg,0), 'OT')
+  totalmins = totalmins + minutes
   ::CONTINUE::
 end
 
