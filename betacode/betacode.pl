@@ -1,7 +1,10 @@
 use v5.36;
 
-my %html_table = (
-  ' ' => ' ',  '.' => '.', '?' => '?',    # leave punctuation alone
+use Tie::Hash::DefaultFromKey;
+
+tie my %html_table, 'Tie::Hash::DefaultFromKey';
+
+%html_table = (
   '*a' => '&#x391;', 'a'  => '&#x3b1;',
   '*b' => '&#x392;', 'b'  => '&#x3b2;',
   '*g' => '&#x393;', 'g'  => '&#x3b3;',
