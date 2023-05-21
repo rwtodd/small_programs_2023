@@ -7,9 +7,10 @@ my $running_total = 0;
 
 while(<>) {
   chomp;
-  next if /^\s*#/ or /^\s*$/;
+  s/^\s+|\s+$//g;  # trim()
+  next if /^#/ or /^$/;
 
-  m/^ \s*
+  m/^
     (?<h1>\d{1,2}):(?<m1>\d\d)(?<ap1>[ap])m?
     \s+  - \s+
     (?<h2>\d{1,2}):(?<m2>\d\d)(?<ap2>[ap])m?
