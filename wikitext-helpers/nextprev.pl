@@ -32,8 +32,11 @@ $config{short_title} = $config{full_title} if ($config{short_title} eq  "unknown
 
 my $book = "$config{full_title} ($config{author})";
 my $nav = "$book Nav";
-my @toc = ( make_raw_entry("Contents", "[[:Category:$book|Contents]]") );
+my @toc = ( );
 my @categories = ($book, split /\s*\|\|\s*/, $config{categories});
+
+# ---- Now read the toc lines, emitting wikitext fragments
+push @toc, make_entry($_) for(<>);
 
 # ---- Here's the Navigation Template
 if($options{n}) {
@@ -56,20 +59,26 @@ if($options{n}) {
      NAVEND
 }
 
-# ---- Now read the toc lines, emitting wikitext fragments
-while(<>) {
-  chomp;
-  push @toc, make_entry($_);
-  next if ($#toc == 1);
-  &print_entry;
+# ---- Now we can print the page templates...
+if($options{p}) {
+  my $toc_entry = make_raw_entry("Contents", "[[:Category:$book|Contents]]");
+  my $tlen = @toc;
+  if($tlen == 0) {
+     warn "No TOC to print!";
+  } elsif($tlen == 1) {
+    print_entry($toc_entry, $toc[0], $toc_entry);
+  } else {
+    print_entry($toc_entry, @toc[0,1]);
+    if($tlen > 2) {
+      print_entry(@toc[$_,$_+1,$_+2]) for (0 .. ($tlen - 3));
+    }
+    print_entry(@toc[$tlen-2, $tlen-1], $toc_entry);
+  }
 }
-push @toc, $toc[0]; # last entry should wrap to TOC
-&print_entry;
 
 # ---- Now put out the TOC entries for the main table of contents
 if($options{c}) {
   my $underscored = $book =~ tr/ /_/r;
-  shift @toc; pop @toc;  # drop the TOC entries at the front and back
   print "~~~ the Table of contents is Category:$underscored ~~~\n";
   print "* $$_{long}\n" for @toc;
 }
@@ -96,20 +105,17 @@ sub make_entry {   # generate appropriate text from a name
 	   short => "[[$long_str ($config{short_title})|$short_str]]" };
 }
 
-sub print_entry() {
-  if($options{p}) {
-    my ($prv,$cur,$nxt) = @toc[$#toc-2 .. $#toc];
-    print <<~"ENTRY";
-      ### for ($$cur{name}) ... 
-      {{$nav
-      | 1 = $$prv{short}
-      | 2 = $$nxt{short}
-      }}
+sub print_entry($prv,$cur,$nxt) {
+  print <<~"ENTRY";
+    ### for ($$cur{name}) ... 
+    {{$nav
+    | 1 = $$prv{short}
+    | 2 = $$nxt{short}
+    }}
 
-      &rarr; $$nxt{long} &rarr;
+    &rarr; $$nxt{long} &rarr;
 
-      ENTRY
-  }
+    ENTRY
 }
 
 sub VERSION_MESSAGE($fh, @) { say $fh "nextprev.pl version 1.00"; }
