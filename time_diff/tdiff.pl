@@ -40,7 +40,7 @@ sub minutes_since_midnight($h,$m,$ap) { ($h % 12 + ($ap eq 'p' ? 12 : 0))*60 + $
 sub report($minutes,$class) {
   return if $minutes <= 0;
   my ($hh,$mm) = (int($minutes / 60), $minutes % 60);
-  say "${hh}h ${mm}m $class";
+  printf "%02dh %02dm %s\n", $hh, $mm, $class;
 }
 
 __END__
