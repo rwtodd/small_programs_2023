@@ -26,11 +26,11 @@ timeline = re.compile(
 
 lines = fileinput.input()
 for line in lines:
-    if line.startswith('#') or line.isspace(): continue
     line = line.strip()
+    if len(line) == 0 or line.startswith('#'): continue
     parts = timeline.match(line)
     if not parts:
-        print('!! Bad line:',lines.lineno(),line,file=sys.stderr)
+        print(f'!! Bad line {lines.lineno()}: <{line}>',file=sys.stderr)
         continue
     minutes = (minutes_since_midnight(int(parts['h2']),int(parts['m2']),parts['ap2']) - 
                minutes_since_midnight(int(parts['h1']),int(parts['m1']),parts['ap1']))
