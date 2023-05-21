@@ -36,7 +36,7 @@ my @toc = ( );
 my @categories = ($book, split /\s*\|\|\s*/, $config{categories});
 
 # ---- Now read the toc lines, emitting wikitext fragments
-push @toc, make_entry($_) for(<>);
+push @toc, make_entry($_) for(grep /\S/, <>);
 
 # ---- Here's the Navigation Template
 if($options{n}) {
