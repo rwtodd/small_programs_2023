@@ -1,12 +1,12 @@
 use v5.36;
 
 use Getopt::Std;
-use Tie::Hash::DefaultFromKey;
+use Tie::Hash::Default;
 
 my %options;
 getopts('n', \%options) or HELP_MESSAGE(\*STDERR);
 
-tie my %html_table, 'Tie::Hash::DefaultFromKey';
+tie my %html_table, 'Tie::Hash::Default';
 %html_table = (
   '*a' => "\x{391}", 'a'  => "\x{3b1}",
   '*b' => "\x{392}", 'b'  => "\x{3b2}",
