@@ -1,0 +1,32 @@
+#!/usr/bin/env python
+'''FINDBIN -- Finds binary sequences in files.
+
+SYNOPSIS:
+  binfind <hex-str> <filenames>
+
+DESSCRIPTION:
+  Identifies all occurrences of a binary sequence (given in hex notation, 
+  e.g., 1e1d1f).  It prints out the location of the match, and gives
+  context from either side of the match, printing 16 numbers total.
+'''
+
+from sys import argv, exit, stderr
+from os.path import basename
+
+try:
+  hex_seq = bytes.fromhex(argv[1])
+except:
+  print(__doc__,file=stderr)
+  exit(-1)
+
+context = max(0, ((16 - len(hex_seq))//2)) # number of bytes of context...
+
+for fn in argv[2:]:
+  with open(fn,'rb') as infl:
+    bn = basename(fn)
+    src = infl.read()
+    start = 0
+    while (loc := src.find(hex_seq, start)) >= 0:
+      found_idx = max(0, loc - context)
+      print(f'{bn}: {loc:08X}:',src[found_idx:found_idx+16].hex(' '))
+      start = loc+len(hex_seq)
