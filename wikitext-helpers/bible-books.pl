@@ -46,195 +46,527 @@ my %expanded_vnames = (
 # up if it sees a different name, so I can correct it.
 # The numbers are the book numbers used by Zefania XMLBIBLE files.  I'll use it
 # for reverse-lookup if the book name isn't in the file.
-my %book_numbers = (
-   'Genesis' => 1,
-   'Exodus' => 2,
-   'Leviticus' => 3,
-   'Numbers' => 4,
-   'Deuteronomy' => 5,
-   'Joshua' => 6,
-   'Judges' => 7,
-   'Ruth' => 8,
-   '1 Samuel' => 9,
-   '2 Samuel' => 10,
-   '1 Kings' => 11,
-   '2 Kings' => 12,
-   '1 Chronicles' => 13,
-   '2 Chronicles' => 14,
-   'Ezra' => 15,
-   'Nehemiah' => 16,
-   'Esther' => 17,
-   'Job' => 18,
-   'Psalms' => 19,
-   'Proverbs' => 20,
-   'Ecclesiastes' => 21,
-   'Song of Solomon' => 22,
-   'Isaiah' => 23,
-   'Jeremiah' => 24,
-   'Lamentations' => 25,
-   'Ezekiel' => 26,
-   'Daniel' => 27,
-   'Hosea' => 28,
-   'Joel' => 29,
-   'Amos' => 30,
-   'Obadiah' => 31,
-   'Jonah' => 32,
-   'Micah' => 33,
-   'Nahum' => 34,
-   'Habakkuk' => 35,
-   'Zephaniah' => 36,
-   'Haggai' => 37,
-   'Zechariah' => 38,
-   'Malachi' => 39,
-   'Tobit' => 69,
-   'Judith' => 67,
-   'Additions to Esther' => 75,
-   'Wisdom' => 68,
-   'Sirach' => 70,
-   'Baruch' => 71,
-   'Additions to Daniel' => 74,
-   'Susanna' => 87,
-   'Bel and the Dragon' => 87,
-   '1 Maccabees' => 72,
-   '2 Maccabees' => 73,
-   '1 Esdras' => 80,
-   'Manassse' => 76,
-   '2 Esdras' => 81,
-   'Matthew' => 40,
-   'Mark' => 41,
-   'Luke' => 42,
-   'John' => 43,
-   'Acts' => 44,
-   'Romans' => 45,
-   '1 Corinthians' => 46,
-   '2 Corinthians' => 47,
-   'Galatians' => 48,
-   'Ephesians' => 49,
-   'Philippians' => 50,
-   'Colossians' => 51,
-   '1 Thessalonians' => 52,
-   '2 Thessalonians' => 53,
-   '1 Timothy' => 54,
-   '2 Timothy' => 55,
-   'Titus' => 56,
-   'Philemon' => 57,
-   'Hebrews' => 58,
-   'James' => 59,
-   '1 Peter' => 60,
-   '2 Peter' => 61,
-   '1 John' => 62,
-   '2 John' => 63,
-   '3 John' => 64,
-   'Jude' => 65,
-   'Revelation' => 66);
+my %book_byname = (
+   'Genesis' => { 
+     id => 1, 
+     short => 'GEN',
+     long => 'Genesis',
+     testament => 'Old'
+   },
+   'Exodus' => { 
+     id => 2, 
+     short => 'EXO',
+     long => 'Exodus',
+     testament => 'Old'
+   },
+   'Leviticus' => { 
+     id => 3, 
+     short => 'LEV',
+     long => 'Leviticus',
+     testament => 'Old'
+   },
+   'Numbers' => { 
+     id => 4, 
+     short => 'NUM',
+     long => 'Numbers',
+     testament => 'Old'
+   },
+   'Deuteronomy' => { 
+     id => 5, 
+     short => 'DEU',
+     long => 'Deuteronomy',
+     testament => 'Old'
+   },
+   'Joshua' => { 
+     id => 6, 
+     short => 'JOS',
+     long => 'Joshua',
+     testament => 'Old'
+   },
+   'Judges' => { 
+     id => 7, 
+     short => 'JDG',
+     long => 'Judges',
+     testament => 'Old'
+   },
+   'Ruth' => { 
+     id => 8, 
+     short => 'RUT',
+     long => 'Ruth',
+     testament => 'Old'
+   },
+   '1 Samuel' => { 
+     id => 9, 
+     short => '1SA',
+     long => '1 Samuel',
+     testament => 'Old'
+   },
+   '2 Samuel' => { 
+     id => 10, 
+     short => '2SA',
+     long => '2 Samuel',
+     testament => 'Old'
+   },
+   '1 Kings' => { 
+     id => 11, 
+     short => '1KI',
+     long => '1 Kings',
+     testament => 'Old'
+   },
+   '2 Kings' => { 
+     id => 12, 
+     short => '2KI',
+     long => '2 Kings',
+     testament => 'Old'
+   },
+   '1 Chronicles' => { 
+     id => 13, 
+     short => '1CH',
+     long => '1 Chronicles',
+     testament => 'Old'
+   },
+   '2 Chronicles' => { 
+     id => 14, 
+     short => '2CH',
+     long => '2 Chronicles',
+     testament => 'Old'
+   },
+   'Ezra' => { 
+     id => 15, 
+     short => 'EZR',
+     long => 'Ezra',
+     testament => 'Old'
+   },
+   'Nehemiah' => { 
+     id => 16, 
+     short => 'NEH',
+     long => 'Nehemiah',
+     testament => 'Old'
+   },
+   'Esther' => { 
+     id => 17, 
+     short => 'EST',
+     long => 'Esther',
+     testament => 'Old'
+   },
+   'Job' => { 
+     id => 18, 
+     short => 'JOB',
+     long => 'Job',
+     testament => 'Old'
+   },
+   'Psalms' => { 
+     id => 19, 
+     short => 'PSA',
+     long => 'Psalms',
+     testament => 'Old'
+   },
+   'Proverbs' => { 
+     id => 20, 
+     short => 'PRO',
+     long => 'Proverbs',
+     testament => 'Old'
+   },
+   'Ecclesiastes' => { 
+     id => 21, 
+     short => 'ECC',
+     long => 'Ecclesiastes',
+     testament => 'Old'
+   },
+   'Song of Solomon' => { 
+     id => 22, 
+     short => 'SNG',
+     long => 'Song of Solomon',
+     testament => 'Old'
+   },
+   'Isaiah' => { 
+     id => 23, 
+     short => 'ISA',
+     long => 'Isaiah',
+     testament => 'Old'
+   },
+   'Jeremiah' => { 
+     id => 24, 
+     short => 'JER',
+     long => 'Jeremiah',
+     testament => 'Old'
+   },
+   'Lamentations' => { 
+     id => 25, 
+     short => 'LAM',
+     long => 'Lamentations',
+     testament => 'Old'
+   },
+   'Ezekiel' => { 
+     id => 26, 
+     short => 'EZK',
+     long => 'Ezekiel',
+     testament => 'Old'
+   },
+   'Daniel' => { 
+     id => 27, 
+     short => 'DAN',
+     long => 'Daniel',
+     testament => 'Old'
+   },
+   'Hosea' => { 
+     id => 28, 
+     short => 'HOS',
+     long => 'Hosea',
+     testament => 'Old'
+   },
+   'Joel' => { 
+     id => 29, 
+     short => 'JOL',
+     long => 'Joel',
+     testament => 'Old'
+   },
+   'Amos' => { 
+     id => 30, 
+     short => 'AMO',
+     long => 'Amos',
+     testament => 'Old'
+   },
+   'Obadiah' => { 
+     id => 31, 
+     short => 'OBA',
+     long => 'Obadiah',
+     testament => 'Old'
+   },
+   'Jonah' => { 
+     id => 32, 
+     short => 'JON',
+     long => 'Jonah',
+     testament => 'Old'
+   },
+   'Micah' => { 
+     id => 33, 
+     short => 'MIC',
+     long => 'Micah',
+     testament => 'Old'
+   },
+   'Nahum' => { 
+     id => 34, 
+     short => 'NAM',
+     long => 'Nahum',
+     testament => 'Old'
+   },
+   'Habakkuk' => { 
+     id => 35, 
+     short => 'HAB',
+     long => 'Habakkuk',
+     testament => 'Old'
+   },
+   'Zephaniah' => { 
+     id => 36, 
+     short => 'ZEP',
+     long => 'Zephaniah',
+     testament => 'Old'
+   },
+   'Haggai' => { 
+     id => 37, 
+     short => 'HAG',
+     long => 'Haggai',
+     testament => 'Old'
+   },
+   'Zechariah' => { 
+     id => 38, 
+     short => 'ZEC',
+     long => 'Zechariah',
+     testament => 'Old'
+   },
+   'Malachi' => { 
+     id => 39, 
+     short => 'MAL',
+     long => 'Malachi',
+     testament => 'Old'
+   },
+   'Tobit' => { 
+     id => 69, 
+     short => 'TOB',
+     long => 'Tobit',
+     testament => 'Apocrypha'
+   },
+   'Judith' => { 
+     id => 67, 
+     short => 'JDT',
+     long => 'Judith',
+     testament => 'Apocrypha'
+   },
+   'Additions to Esther' => { 
+     id => 75, 
+     short => 'ADE',
+     long => 'Additions to Esther',
+     testament => 'Apocrypha'
+   },
+   'Wisdom' => { 
+     id => 68, 
+     short => 'WIS',
+     long => 'Wisdom',
+     testament => 'Apocrypha'
+   },
+   'Sirach' => { 
+     id => 70, 
+     short => 'SIR',
+     long => 'Sirach',
+     testament => 'Apocrypha'
+   },
+   'Baruch' => { 
+     id => 71, 
+     short => 'BAR',
+     long => 'Baruch',
+     testament => 'Apocrypha'
+   },
+   'Additions to Daniel' => { 
+     id => 74, 
+     short => 'ADD',
+     long => 'Additions to Daniel',
+     testament => 'Apocrypha'
+   },
+   'Susanna' => { 
+     id => 87, 
+     short => 'SUS',
+     long => 'Susanna',
+     testament => 'Apocrypha'
+   },
+   'Bel and the Dragon' => { 
+     id => 87, 
+     short => 'BEL',
+     long => 'Bel and the Dragon',
+     testament => 'Apocrypha'
+   },
+   '1 Maccabees' => { 
+     id => 72, 
+     short => '1MA',
+     long => '1 Maccabees',
+     testament => 'Apocrypha'
+   },
+   '2 Maccabees' => { 
+     id => 73, 
+     short => '2MA',
+     long => '2 Maccabees',
+     testament => 'Apocrypha'
+   },
+   '1 Esdras' => { 
+     id => 80, 
+     short => '1ES',
+     long => '1 Esdras',
+     testament => 'Apocrypha'
+   },
+   'Manassse' => { 
+     id => 76, 
+     short => 'MAN',
+     long => 'Manassse',
+     testament => 'Apocrypha'
+   },
+   '2 Esdras' => { 
+     id => 81, 
+     short => '2ES',
+     long => '2 Esdras',
+     testament => 'Apocrypha'
+   },
+   'Matthew' => { 
+     id => 40, 
+     short => 'MAT',
+     long => 'Matthew',
+     testament => 'New'
+   },
+   'Mark' => { 
+     id => 41, 
+     short => 'MRK',
+     long => 'Mark',
+     testament => 'New'
+   },
+   'Luke' => { 
+     id => 42, 
+     short => 'LUK',
+     long => 'Luke',
+     testament => 'New'
+   },
+   'John' => { 
+     id => 43, 
+     short => 'JHN',
+     long => 'John',
+     testament => 'New'
+   },
+   'Acts' => { 
+     id => 44, 
+     short => 'ACT',
+     long => 'Acts',
+     testament => 'New'
+   },
+   'Romans' => { 
+     id => 45, 
+     short => 'ROM',
+     long => 'Romans',
+     testament => 'New'
+   },
+   '1 Corinthians' => { 
+     id => 46, 
+     short => '1CO',
+     long => '1 Corinthians',
+     testament => 'New'
+   },
+   '2 Corinthians' => { 
+     id => 47, 
+     short => '2CO',
+     long => '2 Corinthians',
+     testament => 'New'
+   },
+   'Galatians' => { 
+     id => 48, 
+     short => 'GAL',
+     long => 'Galatians',
+     testament => 'New'
+   },
+   'Ephesians' => { 
+     id => 49, 
+     short => 'EPH',
+     long => 'Ephesians',
+     testament => 'New'
+   },
+   'Philippians' => { 
+     id => 50, 
+     short => 'PHP',
+     long => 'Philippians',
+     testament => 'New'
+   },
+   'Colossians' => { 
+     id => 51, 
+     short => 'COL',
+     long => 'Colossians',
+     testament => 'New'
+   },
+   '1 Thessalonians' => { 
+     id => 52, 
+     short => '1TH',
+     long => '1 Thessalonians',
+     testament => 'New'
+   },
+   '2 Thessalonians' => { 
+     id => 53, 
+     short => '2TH',
+     long => '2 Thessalonians',
+     testament => 'New'
+   },
+   '1 Timothy' => { 
+     id => 54, 
+     short => '1TI',
+     long => '1 Timothy',
+     testament => 'New'
+   },
+   '2 Timothy' => { 
+     id => 55, 
+     short => '2TI',
+     long => '2 Timothy',
+     testament => 'New'
+   },
+   'Titus' => { 
+     id => 56, 
+     short => 'TIT',
+     long => 'Titus',
+     testament => 'New'
+   },
+   'Philemon' => { 
+     id => 57, 
+     short => 'PHM',
+     long => 'Philemon',
+     testament => 'New'
+   },
+   'Hebrews' => { 
+     id => 58, 
+     short => 'HEB',
+     long => 'Hebrews',
+     testament => 'New'
+   },
+   'James' => { 
+     id => 59, 
+     short => 'JAS',
+     long => 'James',
+     testament => 'New'
+   },
+   '1 Peter' => { 
+     id => 60, 
+     short => '1PE',
+     long => '1 Peter',
+     testament => 'New'
+   },
+   '2 Peter' => { 
+     id => 61, 
+     short => '2PE',
+     long => '2 Peter',
+     testament => 'New'
+   },
+   '1 John' => { 
+     id => 62, 
+     short => '1JN',
+     long => '1 John',
+     testament => 'New'
+   },
+   '2 John' => { 
+     id => 63, 
+     short => '2JN',
+     long => '2 John',
+     testament => 'New'
+   },
+   '3 John' => { 
+     id => 64, 
+     short => '3JN',
+     long => '3 John',
+     testament => 'New'
+   },
+   'Jude' => { 
+     id => 65, 
+     short => 'JUD',
+     long => 'Jude',
+     testament => 'New'
+   },
+   'Revelation' => {
+     id => 66,
+     short => 'REV',
+     long => 'Revelation',
+     testament => 'New'
+   }
+);
 
-my %abbrev_book = (
-   'Genesis' => 'GEN',
-   'Exodus' => 'EXO',
-   'Leviticus' => 'LEV',
-   'Numbers' => 'NUM',
-   'Deuteronomy' => 'DEU',
-   'Joshua' => 'JOS',
-   'Judges' => 'JDG',
-   'Ruth' => 'RUT',
-   '1 Samuel' => '1SA',
-   '2 Samuel' => '2SA',
-   '1 Kings' => '1KI',
-   '2 Kings' => '2KI',
-   '1 Chronicles' => '1CH',
-   '2 Chronicles' => '2CH',
-   'Ezra' => 'EZR',
-   'Nehemiah' => 'NEH',
-   'Esther' => 'EST',
-   'Job' => 'JOB',
-   'Psalms' => 'PSA',
-   'Proverbs' => 'PRO',
-   'Ecclesiastes' => 'ECC',
-   'Song of Solomon' => 'SNG',
-   'Isaiah' => 'ISA',
-   'Jeremiah' => 'JER',
-   'Lamentations' => 'LAM',
-   'Ezekiel' => 'EZK',
-   'Daniel' => 'DAN',
-   'Hosea' => 'HOS',
-   'Joel' => 'JOL',
-   'Amos' => 'AMO',
-   'Obadiah' => 'OBA',
-   'Jonah' => 'JON',
-   'Micah' => 'MIC',
-   'Nahum' => 'NAM',
-   'Habakkuk' => 'HAB',
-   'Zephaniah' => 'ZEP',
-   'Haggai' => 'HAG',
-   'Zechariah' => 'ZEC',
-   'Malachi' => 'MAL',
-   'Tobit' => 'TOB',
-   'Judith' => 'JDT',
-   'Additions to Esther' => 'ADE',
-   'Wisdom' => 'WIS',
-   'Sirach' => 'SIR',
-   'Baruch' => 'BAR',
-   'Additions to Daniel' => 'ADD',
-   'Susanna' => 'SUS',
-   'Bel and the Dragon' => 'BEL',
-   '1 Maccabees' => '1MA',
-   '2 Maccabees' => '2MA',
-   '1 Esdras' => '1ES',
-   'Manassse' => 'MAN',
-   '2 Esdras' => '2ES',
-   'Matthew' => 'MAT',
-   'Mark' => 'MRK',
-   'Luke' => 'LUK',
-   'John' => 'JHN',
-   'Acts' => 'ACT',
-   'Romans' => 'ROM',
-   '1 Corinthians' => '1CO',
-   '2 Corinthians' => '2CO',
-   'Galatians' => 'GAL',
-   'Ephesians' => 'EPH',
-   'Philippians' => 'PHP',
-   'Colossians' => 'COL',
-   '1 Thessalonians' => '1TH',
-   '2 Thessalonians' => '2TH',
-   '1 Timothy' => '1TI',
-   '2 Timothy' => '2TI',
-   'Titus' => 'TIT',
-   'Philemon' => 'PHM',
-   'Hebrews' => 'HEB',
-   'James' => 'JAS',
-   '1 Peter' => '1PE',
-   '2 Peter' => '2PE',
-   '1 John' => '1JN',
-   '2 John' => '2JN',
-   '3 John' => '3JN',
-   'Jude' => 'JUD',
-   'Revelation' => 'REV');
-
-# make a number => name lookup as well
-my %book_names = reverse %book_numbers;
+# make a number => data lookup as well
+my %book_bynumber;
+@book_bynumber{map $_->{id}, values %book_byname} = values %book_byname;
 
 # some names in the bible books need adjustment to meet my standard
-# so I'll add those now with the correct numbers.
-$book_numbers{Psalm} = 19;
-$book_numbers{AddDan} = 74;
-$book_numbers{AddEsth} = 75;
-$book_numbers{Judit} = 67;
+# so I'll add those now
+$book_byname{Psalm} = $book_byname{Psalms};
+$book_byname{AddDan} = $book_byname{'Additions to Daniel'};
+$book_byname{AddEsth} = $book_byname{'Additions to Esther'};
+$book_byname{Judit} = $book_byname{'Judith'};
 
-# get a book name from a BIBLEBOOK node, either directly or via the number...
-sub book_name($biblebook) {
+# get a book from a BIBLEBOOK node, either by name or via the number...
+# return the book data hash
+sub book_data($biblebook) {
   my $bname = $biblebook->findvalue('@bname');
   my $bnumber = $biblebook->findvalue('@bnumber');
-  my $num = ($bname ? $book_numbers{$bname} : $bnumber) || -1;
-  my $result = $book_names{$num};
-  warn "Unknown book name,number=<$bname>,<$bnumber>" unless $result;
-  return $result;
+  if($bname) {
+     my $book = $book_byname{$bname} or warn "unknown book name $bname!";
+     if($bnumber && $book->{id} != $bnumber) {
+       warn "name/number mismatch <$bname><$bnumber>!";
+       $book = undef;
+     }
+     return $book;
+  } elsif($bnumber) {
+    # we only have a number, so go with it... 
+    my $book = $book_bynumber{$bnumber} or warn "unknown book number $bnumber!";
+    return $book;
+  } else {
+    warn "no book number or name!!";
+    return undef; 
+  }
 }
 
 # check that all the book names are in my 'approved' list
 sub all_books_named_ok($bible) {
   my $result = 1;
   for my $bk ($bible->findnodes('/XMLBIBLE/BIBLEBOOK')) {
-    $result = 0 if (! defined book_name($bk));
+    $result = 0 if (! defined book_data($bk));
   }
   return $result;
 }
@@ -253,11 +585,12 @@ sub determine_bible_version($xml_fn) {
   die "unable to determine bible version from filename <$xml_fn>";
 }
 
+# pulls the chapter number from the page name
 sub derive_chapter_from_page($page) {
   if($page =~ m/ (\d+) \([A-Z]/) {
     return $1 + 0;
   }
-  die "could not determind chapter number from page <$page>";
+  die "could not determine chapter number from page <$page>";
 }
 
 #standardize how we make a table of contents link
@@ -284,11 +617,11 @@ sub output_toc($version, $toc) {
      $fh->print("\n; $bname");
      my $count = 0;
      for my $page (@$section) {
-       $fh->print("\n:") if $count % 10 == 0;
+       $fh->print($count % 10 == 0 ? "\n: " : " &bull; ");
        my $chapnum = derive_chapter_from_page($page);
-       $fh->print(" [[$page|$chapnum]]");
+       $fh->print("[[$page|$chapnum]]");
        $count++;
-       warn "missing a chapter $count vs $chapnum..." if ($count != $chapnum);
+       warn "$bname missing a chapter $count vs $chapnum..." if ($count != $chapnum);
      }
   }
   $fh->say("\n\n[[Category:Bibles]]");
@@ -296,28 +629,27 @@ sub output_toc($version, $toc) {
 }
 
 # Standardize how we format links to a book's chapters...
-sub chapter_page_name($version, $bookname, $chap_node) {
+sub chapter_page_name($version, $book_data, $chap_node) {
   my $cnum = $chap_node->findvalue('@cnumber'); 
-  "$bookname $cnum ($version)" 
+  "$$book_data{long} $cnum ($version)" 
 }
 
-sub chapter_link($version, $bookname, $chap_node) {
+sub chapter_link($version, $book_data, $chap_node) {
   my $cnum = $chap_node->findvalue('@cnumber'); 
-  my $short = $abbrev_book{$bookname};
-  "[[$bookname $cnum ($version)|$short $cnum]]" 
+  "[[$$book_data{long} $cnum ($version)|$$book_data{short} $cnum]]" 
 }
 
-sub prev_chapter_link($version, $book, $chap_node) {
+sub prev_chapter_link($version, $book_data, $chap_node) {
   my $pc = $chap_node->previousNonBlankSibling();
-  return chapter_link($version, $book, $pc) if (defined $pc);
+  return chapter_link($version, $book_data, $pc) if (defined $pc);
 
   # ok, we were the first chapter, so we've got to look up the
   # last chapter of the previous book
-  my $pbook = $chap_node->parentNode->previousNonBlankSibling();
-  if(defined $pbook) {
-    my $pbname = book_name($pbook);
-    my $lastChap = $pbook->find('./CHAPTER[last()]')->[0];
-    return chapter_link($version, $pbname, $lastChap);
+  my $pb_node = $chap_node->parentNode->previousNonBlankSibling();
+  if(defined $pb_node && $pb_node->nodeName eq "BIBLEBOOK") {
+    my $pb_data = book_data($pb_node);
+    my $lastChap = $pb_node->find('./CHAPTER[last()]')->[0];
+    return chapter_link($version, $pb_data, $lastChap);
   }
 
   # if there was no previous book, just return the TOC page...
@@ -325,17 +657,17 @@ sub prev_chapter_link($version, $book, $chap_node) {
   return "[[$toc_page|Contents]]";
 }
 
-sub next_chapter_link($version, $book, $chap_node) {
+sub next_chapter_link($version, $book_data, $chap_node) {
   my $nc = $chap_node->nextNonBlankSibling();
-  return chapter_link($version, $book, $nc) if (defined $nc);
+  return chapter_link($version, $book_data, $nc) if (defined $nc);
 
   # ok, we were the last chapter, so we've got to look up the
   # first chapter of the next book
-  my $nbook = $chap_node->parentNode->nextNonBlankSibling();
-  if(defined $nbook) {
-    my $nbname = book_name($nbook);
-    my $firstChap = $nbook->find('./CHAPTER[1]')->[0];
-    return chapter_link($version, $nbname, $firstChap);
+  my $nb_node = $chap_node->parentNode->nextNonBlankSibling();
+  if(defined $nb_node && $nb_node->nodeName eq "BIBLEBOOK") {
+    my $nb_data = book_data($nb_node);
+    my $firstChap = $nb_node->find('./CHAPTER[1]')->[0];
+    return chapter_link($version, $nb_data, $firstChap);
   }
 
   # if there was no next book, just return the TOC page...
@@ -343,17 +675,22 @@ sub next_chapter_link($version, $book, $chap_node) {
   return "[[$toc_page|Contents]]";
 }
 
-sub output_chapter($version, $book, $chap_node) {  
-  my $cur_page = chapter_page_name($version, $book, $chap_node);
-  my $cur_link = chapter_link($version, $book, $chap_node);
-  my $prev_link = prev_chapter_link($version, $book, $chap_node); 
-  my $next_link = next_chapter_link($version, $book, $chap_node); 
+sub nav_template_name($book_data) {
+  "Bible $$book_data{testament} Nav"
+}
+
+sub output_chapter($version, $book_data, $chap_node) {  
+  my $cur_page = chapter_page_name($version, $book_data, $chap_node);
+  my $cur_link = chapter_link($version, $book_data, $chap_node);
+  my $prev_link = prev_chapter_link($version, $book_data, $chap_node); 
+  my $next_link = next_chapter_link($version, $book_data, $chap_node); 
   my $outfn = chapter_file_name($cur_page);
   my $toc_page = toc_page_name($version);
   $cur_page =~ s/ *\(.*\)$//; # remove the version info from the page
   open my $fh, '>:utf8', (OUTDIR . "/$outfn");
-  $fh->say(<<~NAV);
-  {{Bibe Nav
+  my $nav_page = nav_template_name($book_data);
+  $fh->print(<<~NAV);
+  {{$nav_page
   |1=$toc_page
   |2=$cur_page
   |3=$prev_link
@@ -362,7 +699,7 @@ sub output_chapter($version, $book, $chap_node) {
   my $count = 1;
   for my $verse ($chap_node->findnodes('VERS')) {
     my $vnum = $verse->findvalue('@vnumber') + 0;
-    warn "missing verse? count of <$count> vs <$vnum>" unless $vnum == $count;
+    warn "$cur_page missing verse? count of <$count> vs <$vnum>" unless $vnum == $count;
     my $txt = $verse->to_literal();
     $fh->print("<span id=\"V$vnum\">'''$vnum.'''</span> ",$txt,"\n\n");
   } continue { $count++ }
@@ -379,16 +716,17 @@ sub process_bible($xml_fn) {
 
   my $dom = XML::LibXML->load_xml(location => $xml_fn);
   all_books_named_ok($dom) or die "need to clean up the book names!";
+  say "All Books ok!";
 
   for my $bk ($dom->findnodes('/XMLBIBLE/BIBLEBOOK')) {
-    my $name = book_name($bk);
-    my @chaps = ($name);
+    my $book_data = book_data($bk);
+    my @chaps = ($$book_data{long});
     for my $chap ($bk->findnodes('CHAPTER')) {
-      push @chaps, chapter_page_name($name, $version, $chap);
-      output_chapter($version, $name, $chap);
+      push @chaps, chapter_page_name($version, $book_data, $chap);
+      output_chapter($version, $book_data, $chap);
     }
     push @toc, \@chaps;
-    last; # RWT TEMP!!!
+    # last; # RWT TEMP!!!
   }
 
   output_toc($version,\@toc);
