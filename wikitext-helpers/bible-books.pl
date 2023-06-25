@@ -324,13 +324,13 @@ my %book_byname = (
      testament => 'Apocrypha'
    },
    'Susanna' => { 
-     id => 87, 
+     id => 87,                # NOTE! duplicate of 'Bel and the Dragon' below...
      short => 'SUS',
      long => 'Susanna',
      testament => 'Apocrypha'
    },
    'Bel and the Dragon' => { 
-     id => 87, 
+     id => 87,                # NOTE! duplicate of 'susanna' above....
      short => 'BEL',
      long => 'Bel and the Dragon',
      testament => 'Apocrypha'
@@ -364,6 +364,18 @@ my %book_byname = (
      short => '2ES',
      long => '2 Esdras',
      testament => 'Apocrypha'
+   },
+   'Letter of Jeremiah' => {
+     id => 79, 
+     short => 'LJE',
+     long => 'Letter of Jeremiah',
+     testament => 'Apocrypha'
+   },
+   'Psalms of Solomon' => {
+     id => 83, 
+     short => 'PSS',
+     long => 'Psalms of Solomon',
+     testament => 'Apocrypha'  # possibly should be "Rahlfs' LXX"
    },
    'Matthew' => { 
      id => 40, 
@@ -697,9 +709,13 @@ sub output_chapter($version, $book_data, $chap_node) {
   |4=$next_link}}
   NAV
   my $count = 1;
+  my $verse_difference = 0;
   for my $verse ($chap_node->findnodes('VERS')) {
     my $vnum = $verse->findvalue('@vnumber') + 0;
-    warn "$cur_page missing verse? count of <$count> vs <$vnum>" unless $vnum == $count;
+    if (($vnum - $count) != $verse_difference) {
+      warn "$cur_page missing verse? count of <$count> vs <$vnum>";
+      $verse_difference = $vnum - $count;
+    }
     my $txt = $verse->to_literal();
     $fh->print("<span id=\"V$vnum\">'''$vnum.'''</span> ",$txt,"\n\n");
   } continue { $count++ }
