@@ -2,7 +2,14 @@
 
 use v5.36;
 
+sub process_code_block($txt) {
+  $txt =~ s{^(?=\S)}{ }mg;
+  return $txt;
+}
+
 sub clean_file($txt) {
+  die "no file!" unless(defined $txt);
+
   # remove everthing through the navbar
   $txt = substr $txt, $+[0] if($txt =~ m{^<div class="navbar">.*?</table></div>}ms);
   # remove everything after the final <hr>...
@@ -21,8 +28,22 @@ sub clean_file($txt) {
   # get rid of named anchors...
   $txt =~ s{<a \s+ name=" .*? /?> (?: \s* </a> )? }{}igx;
 
+  # TODO ... fixup links??? or just make obvious for manual fixup???
+  $txt =~ s{^<blockquote><pre class="code">(.*?)</pre></blockquote>}{process_code_block($1)}emsg;
+
+  # fix up figures... they seem to thankfully all be on one line
+  $txt =~ s{<div +class="figure"><img +src="figs/(.*?)".*?</div> *<h4 +class="objtitle">(.*?)</h4>}{[[File:MasterPerlTkFig$1|thumb|center|$2]]}g;
+
+  # remove links to figures, ...
+  $txt =~ s{<a +href=".*?#.*?FIG-.*?>(.*?)</a>}{$1}ig;
+
   # get rid of divs ...
   $txt =~ s{< /? div .*?>}{}igx;
+
+  # convert <em> to ''
+  $txt =~ s{<em.*?>(.*?)</em>}{''$1''}msg;
+  # convert <tt> to <code>
+  $txt =~ s{<tt.*?>(.*?)</tt>}{<code>$1</code>}msg;
 
   # get rid of paragraph markers...
   $txt =~ s{<p>}{\n\n}ig;
@@ -34,13 +55,8 @@ sub clean_file($txt) {
   print $txt;
 }
 
-# MAIN!!
-while(@ARGV) {
-  local $/;
-  my $t = <>;
-  clean_file($t);
-  #clean_file(do { local $/ = undef; <> });
-}
+# MAIN!! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+clean_file(do { local $/; scalar <> }) while(@ARGV);
 
 __END__
 
