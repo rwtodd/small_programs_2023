@@ -19,6 +19,7 @@ my %config = (
 while(<>) {
   chomp;
   last if /^-+$/;
+  next if /^\s*#/; # skip comments
   my ($k,$v) = split /\s*=>\s*/, $_, 2;
   $k = lc $k;
   $k =~ tr/ /_/;
@@ -36,7 +37,10 @@ my @toc = ( );
 my @categories = ($book, split /\s*\|\|\s*/, $config{categories});
 
 # ---- Now read the toc lines, emitting wikitext fragments
-push @toc, make_entry($_) for(grep /\S/, <>);
+while(<>) {
+  next if m/^s*$/ || m/^\s*#/;  # skip comments
+  push @toc, make_entry($_); 
+}
 
 # ---- Here's the Navigation Template
 if($options{n}) {
@@ -80,7 +84,7 @@ if($options{p}) {
 if($options{c}) {
   my $underscored = $book =~ tr/ /_/r;
   print "~~~ the Table of contents is Category:$underscored ~~~\n";
-  print "* $$_{long}\n" for @toc;
+  say $$_{toc} for @toc;
 }
 
 ############################################################################
@@ -88,21 +92,31 @@ if($options{c}) {
 ############################################################################
 
 sub make_raw_entry($name,$text) {   # raw means unedited from user
-  { name => $name, long => $text, short => $text };
+  { name => $name, long => $text, short => $text, toc => "* $text" };
 }
 
-sub make_entry {   # generate appropriate text from a name
-  my ($long_str, $short_str) = split /\s*\|\|\s*/, shift, 2;
+sub make_entry($text) {   # generate appropriate text from a name
+  my $toc_lvl;
+  my $toc_str;
+  if($text =~ s/@@ \s* ([*#]*) \s* (.*?) \s*$//x) { 
+    $toc_lvl = $1;
+    $toc_str = $2;
+  }
+  my ($long_str, $short_str) = split /\s*\|\|\s*/, $text, 2;
   $short_str //= $long_str;
   $long_str =~ s/^\s+|\s+$//g;
   $short_str =~ s/^\s+|\s+$//g;
+  $toc_lvl ||= "*";   # set toc defaults
+  $toc_str ||= $long_str;
   if (length $short_str > 20) {
     $short_str =~ s/^(?:The|An?) //;
     substr($short_str,18) = "&hellip;" if (length $short_str > 20);
   }
   return { name  => $long_str, 
 	   long  => "[[$long_str ($config{short_title})|$long_str]]", 
-	   short => "[[$long_str ($config{short_title})|$short_str]]" };
+	   short => "[[$long_str ($config{short_title})|$short_str]]",
+	   toc   => "$toc_lvl [[$long_str ($config{short_title})|$toc_str]]"
+   };
 }
 
 sub print_entry($prv,$cur,$nxt) {
@@ -139,12 +153,20 @@ books. Here is an example of an good input file:
   ----
   Chapter 1's Name
   Chapter 2's Name || Short Version
-  Chapter 3's Name
+  Chapter 3's Name @@ Table of Contents Text
+  Chapter 4's Name @@ ## <- list level of TOC
   etc.
 
 That's all there is to it! By default, the C<short_title> will be set equal to
 the C<full title>, and the C<categories> list will have the book itself first
 (no need to specify that).
+
+The C<@@>-portion defines what the table of contents should say, which is often
+slightly different than the page name (e.g., it may contain "The " before it, which
+you often don't want the page names to do).  You can also define a list level with
+C<*> or C<#>.  If you only define the list level, you'll get the long text as the 
+toc text.  If you only define the toc text, you'll get a single bullet as the
+list level. So, it's flexible.
 
 =head2 Usage
 
@@ -167,3 +189,4 @@ Prints the table of contents
 =back
 
 =cut
+# vim: sw=2 expandtab
