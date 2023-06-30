@@ -55,6 +55,8 @@ sub process_footnote_block($txt) {
 
 sub process_code_block($txt) {
   $txt =~ s{^(?=\S)}{ }mg;
+  $txt =~ s{\t}{        }mg;
+  $txt =~ s{''}{<nowiki>''</nowiki>}g;
   return $txt;
 }
 
@@ -65,10 +67,6 @@ sub clean_file($txt) {
   $txt = substr $txt, $+[0] if($txt =~ m{^<div class="navbar">.*?</table></div>}ms);
   # remove everything after the final <hr>...
   $txt = substr $txt, 0, $-[0] if($txt =~ m{^<hr.*?>(*PRUNE)\s+^<div class="navbar"}ms);
-
-  # there's a weird combination of tt+em that we should handle separately  <tt><em class="replaceable"><tt>directory</tt></em></tt>
-  $txt =~ s{(?:<tt[^>]*>)+<em[^>]*><tt[^>]*>(.*?)</tt>(*PRUNE)</em>(?:</tt>)+}{''<code>$1</code>''}msg;
-  $txt =~ s{<em[^>]*>(?:<tt[^>]*>)+(.*?)(?:</tt>)+(*PRUNE)</em>}{''<code>$1</code>''}msg;
 
   # change chapter titles...
   $txt =~ s{
@@ -90,11 +88,15 @@ sub clean_file($txt) {
   # process code blocks
   $txt =~ s{^<blockquote><pre class="code">(.*?)</pre></blockquote>}{process_code_block($1)}emsg;
 
+  # there's a weird combination of tt+em that we should handle separately  <tt><em class="replaceable"><tt>directory</tt></em></tt>
+  $txt =~ s{(?:<tt[^>]*>)+<em[^>]*><tt[^>]*>(.*?)</tt>(*PRUNE)</em>(?:</tt>)+}{''<code>$1</code>''}msg;
+  $txt =~ s{<em[^>]*>(?:<tt[^>]*>)+(.*?)(?:</tt>)+(*PRUNE)</em>}{''<code>$1</code>''}msg;
+
   # process footnote blocks
   $txt =~ s{<blockquote class="footnote">(.*?)</blockquote>}{process_footnote_block($1)}emsg;
 
   # fix up figures... they seem to thankfully all be on one line
-  $txt =~ s{<div +class="figure"><img +src="figs/([^"]*?)".*?</div>(*PRUNE) *<h4 +class="objtitle">(.*?)</h4>}{[[File:MasterPerlTkFig$1|thumb|center|$2]]}ig;
+  $txt =~ s{<div +class="figure"><img +src="figs/([^"]*?)".*?</div>(*PRUNE) *<h4 +class="objtitle">(.*?)</h4>}{[[File:MasterPerlTkFig$1|frame|center|$2]]}ig;
 
   # fix up labelled tables
   $txt =~ s{<h4 class="objtitle">(.*?)</h4>(?=<table)}{'''$1'''}ig;
