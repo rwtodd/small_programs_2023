@@ -1,0 +1,21 @@
+#!/usr/bin/env ruby
+require 'optparse'
+require './include/toc.rb'
+
+options = {}
+OptionParser.new do |opt|
+  opt.on('-n', 'Print the Nav Page') { |o| options[:n] = o }
+  opt.on('-p', 'Print the Page Wrappers') { |o| options[:p] = o }
+  opt.on('-c', 'Print the Contents Page') { |o| options[:c] = o }
+end.parse!
+
+# no options means all options!
+if options.empty? then
+  options[:n] = options[:p] = options[:c] = true
+end
+
+td = TocData.from_io(ARGF)
+
+td.puts_nav_page if options[:n]
+td.puts_page_wrappers if options[:p]
+td.puts_toc_page if options[:c]
