@@ -562,6 +562,7 @@ module BibleVersions
      id: 4, 
      short: 'NUM',
      long: 'Numbers',
+     drlatin: 'Nemeri',
      testament: 'Old',
      chapters: 36
    },
@@ -569,6 +570,7 @@ module BibleVersions
      id: 5, 
      short: 'DEU',
      long: 'Deuteronomy',
+     drlatin: 'Deuteronomium',
      testament: 'Old',
      chapters: 34
    },
@@ -576,6 +578,8 @@ module BibleVersions
      id: 6, 
      short: 'JOS',
      long: 'Joshua',
+     drtitle: 'Josue',
+     drlatin: 'Josue',
      testament: 'Old',
      chapters: 24
    },
@@ -583,6 +587,7 @@ module BibleVersions
      id: 7, 
      short: 'JDG',
      long: 'Judges',
+     drlatin: 'Judices',
      testament: 'Old',
      chapters: 21
    },
@@ -598,6 +603,7 @@ module BibleVersions
      short: '1SA',
      long: '1 Samuel',
      drtitle: '1 Kings',
+     drlatin: '1 Regnum',
      testament: 'Old',
      chapters: 31
    },
@@ -606,6 +612,7 @@ module BibleVersions
      short: '2SA',
      long: '2 Samuel',
      drtitle: '2 Kings',
+     drlatin: '2 Regnum',
      testament: 'Old',
      chapters: 24
    },
@@ -614,6 +621,7 @@ module BibleVersions
      short: '1KI',
      long: '1 Kings',
      drtitle: '3 Kings',
+     drlatin: '3 Regnum',
      testament: 'Old',
      chapters: 22
    },
@@ -622,6 +630,7 @@ module BibleVersions
      short: '2KI',
      long: '2 Kings',
      drtitle: '4 Kings',
+     drlatin: '4 Regnum',
      testament: 'Old',
      chapters: 25
    },
@@ -630,6 +639,7 @@ module BibleVersions
      short: '1CH',
      long: '1 Chronicles',
      drtitle: '1 Paralipomenon',
+     drlatin: '1 Paralipomenon',
      testament: 'Old',
      chapters: 29
    },
@@ -638,6 +648,7 @@ module BibleVersions
      short: '2CH',
      long: '2 Chronicles',
      drtitle: '2 Paralipomenon',
+     drlatin: '2 Paralipomenon',
      testament: 'Old',
      chapters: 36
    },
@@ -646,6 +657,7 @@ module BibleVersions
      short: 'EZR',
      long: 'Ezra',
      drtitle: '1 Esdras',
+     drlatin: '1 Esdræ',
      testament: 'Old',
      chapters: 10
    },
@@ -654,6 +666,7 @@ module BibleVersions
      short: 'NEH',
      long: 'Nehemiah',
      drtitle: '2 Esdras',
+     drlatin: '2 Esdræ',
      testament: 'Old',
      chapters: 13
    },
@@ -662,6 +675,7 @@ module BibleVersions
      short: 'TOB',
      long: 'Tobit',
      drtitle: 'Tobias',
+     drlatin: 'Tobiæ',
      testament: 'Apocrypha',
      chapters: 14
    },
@@ -690,6 +704,7 @@ module BibleVersions
      id: 21, 
      short: 'PSA',
      long: 'Psalms',
+     drlatin: 'Psalmi',
      testament: 'Old',
      chapters: 150
    },
@@ -697,6 +712,7 @@ module BibleVersions
      id: 22, 
      short: 'PRO',
      long: 'Proverbs',
+     drlatin: 'Proverbia',
      testament: 'Old',
      chapters: 31
    },
@@ -712,6 +728,7 @@ module BibleVersions
      short: 'SNG',
      long: 'Song of Solomon',
      drtitle: 'Canticle of Canticles',
+     drlatin: 'Canticum Canticorum',
      testament: 'Old',
      chapters: 8
    },
@@ -719,6 +736,7 @@ module BibleVersions
      id: 25, 
      short: 'WIS',
      long: 'Wisdom',
+     drlatin: 'Sapientiæ',
      testament: 'Apocrypha',
      chapters: 19
    },
@@ -727,6 +745,7 @@ module BibleVersions
      short: 'SIR',
      long: 'Sirach',
      drtitle: 'Ecclesiasticus',
+     drlatin: 'Ecclesiasticus',
      testament: 'Apocrypha',
      chapters: 51
    },
@@ -735,6 +754,7 @@ module BibleVersions
      short: 'ISA',
      long: 'Isaiah',
      drtitle: 'Isaias',
+     drlatin: 'Isaiæ',
      testament: 'Old',
      chapters: 66
    },
@@ -743,6 +763,7 @@ module BibleVersions
      short: 'JER',
      long: 'Jeremiah',
      drtitle: 'Jeremias',
+     drlatin: 'Jeremiæ',
      testament: 'Old',
      chapters: 52
    },
@@ -750,6 +771,7 @@ module BibleVersions
      id: 29, 
      short: 'LAM',
      long: 'Lamentations',
+     drlatin: 'Lamentationes',
      testament: 'Old',
      chapters: 5
    },
@@ -765,6 +787,7 @@ module BibleVersions
      short: 'EZK',
      long: 'Ezekiel',
      drtitle: 'Ezechiel',
+     drlatin: 'Ezechielis',
      testament: 'Old',
      chapters: 48
    },
@@ -772,6 +795,7 @@ module BibleVersions
      id: 32, 
      short: 'DAN',
      long: 'Daniel',
+     drlatin: 'Danielis',
      testament: 'Old',
      chapters: 14
    },
@@ -780,6 +804,7 @@ module BibleVersions
      short: 'HOS',
      long: 'Hosea',
      drtitle: 'Osee',
+     drlatin: 'Osee',
      testament: 'Old',
      chapters: 14
    },
@@ -802,6 +827,7 @@ module BibleVersions
      short: 'OBA',
      long: 'Obadiah',
      drtitle: 'Abdias',
+     drlatin: 'Abdiæ',
      testament: 'Old',
      chapters: 1
    },
@@ -810,6 +836,7 @@ module BibleVersions
      short: 'JON',
      long: 'Jonah',
      drtitle: 'Jonas',
+     drlatin: 'Jonæ',
      testament: 'Old',
      chapters: 4
    },
@@ -818,6 +845,7 @@ module BibleVersions
      short: 'MIC',
      long: 'Micah',
      drtitle: 'Micheas',
+     drlatin: 'Michææ',
      testament: 'Old',
      chapters: 0
    },
@@ -833,6 +861,7 @@ module BibleVersions
      short: 'HAB',
      long: 'Habakkuk',
      drtitle: 'Habacuc',
+     drlatin: 'Habacuc',
      testament: 'Old',
      chapters: 3
    },
@@ -841,6 +870,7 @@ module BibleVersions
      short: 'ZEP',
      long: 'Zephaniah',
      drtitle: 'Sophonias',
+     drlatin: 'Sophoniæ',
      testament: 'Old',
      chapters: 3
    },
@@ -849,6 +879,7 @@ module BibleVersions
      short: 'HAG',
      long: 'Haggai',
      drtitle: 'Aggeus',
+     drlatin: 'Aggæi',
      testament: 'Old',
      chapters: 2
    },
@@ -857,6 +888,7 @@ module BibleVersions
      short: 'ZEC',
      long: 'Zechariah',
      drtitle: 'Zacharias',
+     drlatin: 'Zachariæ',
      testament: 'Old',
      chapters: 14
    },
@@ -865,6 +897,7 @@ module BibleVersions
      short: 'MAL',
      long: 'Malachi',
      drtitle: 'Malachias',
+     drlatin: 'Malachiæ',
      testament: 'Old',
      chapters: 4
    },
@@ -873,6 +906,7 @@ module BibleVersions
      short: '1MA',
      long: '1 Maccabees',
      drtitle: '1 Machabees',
+     drlatin: '1 Machabæorum',
      testament: 'Apocrypha',
      chapters: 16
    },
@@ -881,6 +915,7 @@ module BibleVersions
      short: '2MA',
      long: '2 Maccabees',
      drtitle: '2 Machabees',
+     drlatin: '2 Machabæorum',
      testament: 'Apocrypha',
      chapters: 15
    },
@@ -888,6 +923,7 @@ module BibleVersions
      id: 47, 
      short: 'MAT',
      long: 'Matthew',
+     drlatin: 'secundum Matthæum',
      testament: 'New',
      chapters: 28
    },
@@ -895,6 +931,7 @@ module BibleVersions
      id: 48, 
      short: 'MRK',
      long: 'Mark',
+     drlatin: 'secundum Marcum',
      testament: 'New',
      chapters: 16
    },
@@ -902,6 +939,7 @@ module BibleVersions
      id: 49, 
      short: 'LUK',
      long: 'Luke',
+     drlatin: 'secundum Lucam',
      testament: 'New',
      chapters: 24
    },
@@ -909,6 +947,7 @@ module BibleVersions
      id: 50, 
      short: 'JHN',
      long: 'John',
+     drlatin: 'secundum Ioannem',
      testament: 'New',
      chapters: 21
    },
@@ -916,6 +955,7 @@ module BibleVersions
      id: 51, 
      short: 'ACT',
      long: 'Acts',
+     drlatin: 'Actus',
      testament: 'New',
      chapters: 28
    },
@@ -923,6 +963,7 @@ module BibleVersions
      id: 52, 
      short: 'ROM',
      long: 'Romans',
+     drlatin: 'ad Romanos',
      testament: 'New',
      chapters: 16
    },
@@ -930,6 +971,7 @@ module BibleVersions
      id: 53, 
      short: '1CO',
      long: '1 Corinthians',
+     drlatin: '1 ad Corinthios',
      testament: 'New',
      chapters: 16
    },
@@ -937,6 +979,7 @@ module BibleVersions
      id: 54, 
      short: '2CO',
      long: '2 Corinthians',
+     drlatin: '2 ad Corinthios',
      testament: 'New',
      chapters: 13
    },
@@ -944,6 +987,7 @@ module BibleVersions
      id: 55, 
      short: 'GAL',
      long: 'Galatians',
+     drlatin: 'ad Galatas',
      testament: 'New',
      chapters: 6
    },
@@ -951,6 +995,7 @@ module BibleVersions
      id: 56, 
      short: 'EPH',
      long: 'Ephesians',
+     drlatin: 'ad Ephesios',
      testament: 'New',
      chapters: 6
    },
@@ -958,6 +1003,7 @@ module BibleVersions
      id: 57, 
      short: 'PHP',
      long: 'Philippians',
+     drlatin: 'ad Philippenses',
      testament: 'New',
      chapters: 4
    },
@@ -965,6 +1011,7 @@ module BibleVersions
      id: 58, 
      short: 'COL',
      long: 'Colossians',
+     drlatin: 'ad Colossenses',
      testament: 'New',
      chapters: 4
    },
@@ -972,6 +1019,7 @@ module BibleVersions
      id: 59, 
      short: '1TH',
      long: '1 Thessalonians',
+     drlatin: '1 ad Thessalonicenses',
      testament: 'New',
      chapters: 5
    },
@@ -979,6 +1027,7 @@ module BibleVersions
      id: 60, 
      short: '2TH',
      long: '2 Thessalonians',
+     drlatin: '2 ad Thessalonicenses',
      testament: 'New',
      chapters: 3
    },
@@ -986,6 +1035,7 @@ module BibleVersions
      id: 61, 
      short: '1TI',
      long: '1 Timothy',
+     drlatin: '1 ad Timotheum',
      testament: 'New',
      chapters: 6
    },
@@ -993,6 +1043,7 @@ module BibleVersions
      id: 62, 
      short: '2TI',
      long: '2 Timothy',
+     drlatin: '2 ad Timotheum',
      testament: 'New',
      chapters: 4
    },
@@ -1000,6 +1051,7 @@ module BibleVersions
      id: 63, 
      short: 'TIT',
      long: 'Titus',
+     drlatin: 'ad Titum',
      testament: 'New',
      chapters: 3
    },
@@ -1007,6 +1059,7 @@ module BibleVersions
      id: 64, 
      short: 'PHM',
      long: 'Philemon',
+     drlatin: 'ad Philemonem',
      testament: 'New',
      chapters: 1
    },
@@ -1014,6 +1067,7 @@ module BibleVersions
      id: 65, 
      short: 'HEB',
      long: 'Hebrews',
+     drlatin: 'ad Hebræos',
      testament: 'New',
      chapters: 13
    },
@@ -1021,6 +1075,7 @@ module BibleVersions
      id: 66, 
      short: 'JAS',
      long: 'James',
+     drlatin: 'Iacobi',
      testament: 'New',
      chapters: 5
    },
@@ -1028,6 +1083,7 @@ module BibleVersions
      id: 67, 
      short: '1PE',
      long: '1 Peter',
+     drlatin: '1 Petri',
      testament: 'New',
      chapters: 5
    },
@@ -1035,6 +1091,7 @@ module BibleVersions
      id: 68, 
      short: '2PE',
      long: '2 Peter',
+     drlatin: '2 Petri',
      testament: 'New',
      chapters: 3
    },
@@ -1042,6 +1099,7 @@ module BibleVersions
      id: 69, 
      short: '1JN',
      long: '1 John',
+     drlatin: '1 Ioannis',
      testament: 'New',
      chapters: 5
    },
@@ -1049,6 +1107,7 @@ module BibleVersions
      id: 70, 
      short: '2JN',
      long: '2 John',
+     drlatin: '2 Ioannis',
      testament: 'New',
      chapters: 1
    },
@@ -1056,6 +1115,7 @@ module BibleVersions
      id: 71, 
      short: '3JN',
      long: '3 John',
+     drlatin: '3 Ioannis',
      testament: 'New',
      chapters: 1
    },
@@ -1063,6 +1123,7 @@ module BibleVersions
      id: 72, 
      short: 'JUD',
      long: 'Jude',
+     drlatin: 'Iudæ',
      testament: 'New',
      chapters: 1
    },
@@ -1071,6 +1132,7 @@ module BibleVersions
      short: 'REV',
      long: 'Revelation',
      drtitle: 'Apocalypse',
+     drlatin: 'Apocalypsis',
      testament: 'New',
      chapters: 22
    }
