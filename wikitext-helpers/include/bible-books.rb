@@ -37,7 +37,8 @@ module BibleVersions
     NKJV: 'New King James Version',
     NASB: 'New American Standard Bible',
     NAB: 'New American Bible',
-    NETx: 'New English Translation'
+    NETx: 'New English Translation',
+    KNOX: 'Knox Bible'
   }
 
   Zefania_Books = {
@@ -847,7 +848,7 @@ module BibleVersions
      drtitle: 'Micheas',
      drlatin: 'Michææ',
      testament: 'Old',
-     chapters: 0
+     chapters: 7
    },
    { 
      id: 39, 
