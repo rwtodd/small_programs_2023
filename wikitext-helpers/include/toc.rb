@@ -23,16 +23,16 @@ class TocEntry < WikiPage
   def initialize(pagename, short: nil, display: nil) 
     super(pagename)
     long = @pagename.sub(@@last_parenthetical, '')
-    @long = self.make_link(long)
+    @long = make_link(long)
 
-    short ||= long
+    short ||= long.clone
     if short.length > 20 then
       short.sub!(%r!^(?:An?|The)\s+!,'')
       if short.length > 20 then
         short[18..] = '&hellip;'
       end
     end
-    @short = self.make_link(short)
+    @short = make_link(short)
 
     if not display then
       @display = "* #{@long}"
@@ -44,7 +44,7 @@ class TocEntry < WikiPage
         ''
       end
       if display.empty? then display = long end   # default to the whole text
-      @display = "#{level} #{self.make_link(display)}"
+      @display = "#{level} #{make_link(display)}"
     end
   end
 
@@ -58,11 +58,11 @@ class BookCategory < WikiPage
   end
 
   def mark
-    self.make_link.sub!(':','')
+    make_link.sub!(':','')
   end
 
-  def short; self.make_link('Contents'); end
-  def long; self.make_link('Table of Contents'); end
+  def short; make_link('Contents'); end
+  def long; make_link('Table of Contents'); end
 end
 
 class TocData
@@ -83,7 +83,7 @@ class TocData
   end
 
   def page_header(n)
-    prv, cur, nxt = self.page_or_toc(n-1), self.page_or_toc(n), self.page_or_toc(n+1)
+    prv, cur, nxt = page_or_toc(n-1), page_or_toc(n), page_or_toc(n+1)
     <<~ENTRY
       {{#{@nav.pagename}
       | 1 = #{prv.short}
@@ -93,13 +93,13 @@ class TocData
   end 
 
   def page_footer(n)
-    nxt = self.page_or_toc(n+1)
+    nxt = page_or_toc(n+1)
     "&rarr; #{nxt.long} &rarr;"
   end
 
   def puts_page_wrappers
     @pages.each_index do |n|
-      puts "\n\n### for <#{self.page_or_toc(n).pagename}> #########################", page_header(n), "", page_footer(n)
+      puts "\n\n### for <#{page_or_toc(n).pagename}> #########################", page_header(n), "", page_footer(n)
     end
     nil
   end

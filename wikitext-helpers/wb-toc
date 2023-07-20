@@ -7,9 +7,10 @@ OptionParser.new do |opt|
   opt.on('-n', 'Print the Nav Page') { |o| options[:n] = o }
   opt.on('-p', 'Print the Page Wrappers') { |o| options[:p] = o }
   opt.on('-c', 'Print the Contents Page') { |o| options[:c] = o }
+  opt.on('-g', 'Generate skeleton files') { |o| options[:g] = o }
 end.parse!
 
-# no options means all options!
+# no options means print the nav, wrappers, and contents
 if options.empty? then
   options[:n] = options[:p] = options[:c] = true
 end
@@ -19,3 +20,12 @@ td = TocData.from_io(ARGF)
 td.puts_nav_page if options[:n]
 td.puts_page_wrappers if options[:p]
 td.puts_toc_page if options[:c]
+
+if options[:g] then
+  td.pages.each_with_index do |p, idx|
+    fn = p.pagename.gsub(' ','_') + '.wikitext'
+    File.open(fn,'w') do |outf|
+      outf.puts(td.page_header(idx), '', td.page_footer(idx))
+    end
+  end
+end
