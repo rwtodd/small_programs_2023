@@ -67,7 +67,8 @@ end
 
 class TocData
   def initialize(author, full_title, short_title=nil)
-    @short_title = short_title || full_title
+    @full_title = full_title
+    @short_title = short_title || full_title.clone
     @book = WikiPage.new("#{full_title} (#{author})")
     @nav = WikiPage.new(@book.pagename + " Nav");
     @category = BookCategory.new(@book)
