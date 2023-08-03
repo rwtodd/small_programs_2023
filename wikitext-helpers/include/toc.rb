@@ -1,15 +1,16 @@
 # table of contents / nav pages for wikibooks
 #
 class WikiPage
-  @@no_spaces = /\s+/
+  @@spaces = %r!\s+!
   @@last_parenthetical = %r!\s+ \(  [^)]+  \)  $!x
-
+  @@starting_an_the = %r!^(?:An?|The)\s+!
+  
   def initialize(pagename)
     @pagename = pagename
   end
 
   def url
-    @pagename.gsub(@@no_spaces,'_')
+    @pagename.gsub(@@spaces,'_')
   end
 
   def make_link(text=nil)
@@ -20,6 +21,8 @@ class WikiPage
 end
 
 class TocEntry < WikiPage
+  @@display_prefix = %r!^[#*;]*\s*!
+  
   def initialize(pagename, short: nil, display: nil) 
     super(pagename)
     long = @pagename.sub(@@last_parenthetical, '')
@@ -27,7 +30,7 @@ class TocEntry < WikiPage
 
     short ||= long.clone
     if short.length > 20 then
-      short.sub!(%r!^(?:An?|The)\s+!,'')
+      short.sub!(@@starting_an_the,'')
       if short.length > 20 then
         short[18..] = '&hellip;'
       end
@@ -38,7 +41,7 @@ class TocEntry < WikiPage
       @display = "* #{@long}"
     else
       level = '*'
-      display.sub!(/^[#*;]* */) do |lvl| 
+      display.sub!(@@display_prefix) do |lvl| 
         lvl.strip!
         level = lvl.empty? ? '*' : lvl
         ''
@@ -163,17 +166,19 @@ class TocData
       td = TocData.new(config[:author] || "unknown!", config[:full_title] || 'unknown!', config[:short_title])
 
       # now, read all the TOC entries...
+      toc_section = %r! @toc \s+ ([^@]+) !x
+      short_section = %r! @sh \s+ ([^@]+) !x
       io.each_line do |line|
         line.strip!
         next if line.empty? or line.start_with?('#')
 
         # format of a line:  page name [@toc [**] Toc Version] [@sh Short Version]
         toc_part = nil; short_part = nil
-        line.sub!(/ @toc \s+ ([^@]+) /x) do |toc|
+        line.sub!(toc_section) do |toc|
           toc_part = $1.strip
           ''
         end
-        line.sub!(/ @sh \s+ ([^@]+) /x) do |shorter|
+        line.sub!(short_section) do |shorter|
           short_part = $1.strip
           ''
         end
