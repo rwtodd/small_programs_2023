@@ -75,11 +75,18 @@ class TocData
     @book = WikiPage.new("#{full_title} (#{author})")
     @nav = WikiPage.new(@book.pagename + " Nav");
     @category = BookCategory.new(@book)
-    @pages = []
+    @pages = []    # WikiPage list
+    @toc_text = [] # all the TOC text, which can include non-pages 
   end
 
   def add_page(pagename, short: nil, display: nil) 
-    pages << TocEntry.new("#{pagename} (#{@short_title})", short: short, display:display)
+    np = TocEntry.new("#{pagename} (#{@short_title})", short: short, display:display)
+    @toc_text << np.display
+    @pages << np
+  end
+
+  def add_toc_text_line(tline)
+    @toc_text << tline
   end
 
   def page_or_toc(n)
@@ -114,7 +121,7 @@ class TocData
     puts "; Title: ???", "; Author: ????", "; Date: ????-??-??"
     puts '' 
     puts "[[File:#{unders}_CoverImage.jpg|thumb|Cover Image]]", "== Contents =="
-    @pages.each {|p| puts p.display }
+    @toc_text.each {|p| puts p }
     nil
   end
 
@@ -137,7 +144,7 @@ class TocData
      NAVEND
   end
 
-  attr_reader :pages
+  attr_reader :pages, :toc_text
 
   class << self
     def from_io(io)
@@ -168,11 +175,17 @@ class TocData
       # now, read all the TOC entries...
       toc_section = %r! @toc \s+ ([^@]+) !x
       short_section = %r! @sh \s+ ([^@]+) !x
+      disp_only = %r! ^ @raw \s+ (.*) $ !x
       io.each_line do |line|
         line.strip!
         next if line.empty? or line.start_with?('#')
 
         # format of a line:  page name [@toc [**] Toc Version] [@sh Short Version]
+        # ... or @raw some-text-that-goes-into-the-loc-list
+        if (raw = disp_only.match(line)) then
+          td.add_toc_text_line(raw[1])
+          next
+        end
         toc_part = nil; short_part = nil
         line.sub!(toc_section) do |toc|
           toc_part = $1.strip
