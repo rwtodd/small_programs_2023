@@ -7,39 +7,26 @@ end
 class Converter
   def initialize()
     @extract_text = %r[
-      ^ \s* <td \s class="?textarea"? [^>]* >  \s*
+      ^ \s* <td \s+ class="bibletd2">
       (.*?)
-      ^ \s* </p> \s*
-      ^ \s* </td> \s* $
-    ]xm
-    @underlines = %r[
-      <u>(.*?)</u>
+      </td>
     ]xm
     @verse_num = %r[
-      <a \s+ class="?vn"? \s+ href[^>]*>
-        &nbsp;(\d+)&nbsp;
-      </a> \s*
+      <span \s+ class="verse">
+      \s*  (\d+) \s*
+      </span>
+      (?:\s*&nbsp;\s*)?
     ]xm
-    @desc_p = %r[
-      (?:</p> s*)?
-      <p \s+ class="?desc"? [^>]* > \s*
-      (.*?) \s+ 
-      </p>
+    @note_sect = %r[
+      ^ \s* <ul \s+ class="bibleul">
+      (.*)
+      ^ \s* </ul>
     ]xm
-    @note_p = %r[
-      (?:</p>\s+)?
-      <p \s+ class="?note"? [^>]* > \s*
-      (.*?) \s+
-      </p>
-      (?:\s* <p>)?
-    ]xm
-    @emptyp = %r[<p>\s*</p>]m
-    @contents = '[[Douay-Rheims Bible (DOUR)|Contents]]'
-  end
-
-  def extract(file_text)
-    match = @extract_text.match(file_text) or raise "Could not extract text from the file!"
-    match.captures[0] + '</p>'
+    @note_p = %r!
+      <p> \[(\d+)\] \s* (.*?) </p>
+    !xm
+    @note_use = %r!\[(\d+)\]!
+    @contents = '[[Knox Bible (KNOX)|Contents]]'
   end
 
   def make_chap_link(book, chap, type=:short)
@@ -47,11 +34,7 @@ class Converter
       chap = book[:chapters]
     end
     
-    sprintf('[[%s %d (DOUR)|%s %d]]', book[:long], chap, book[type], chap)
-  end
-
-  def btitle(book)
-     book[:drtitle] or book[:long]
+    sprintf('[[%s %d (KNOX)|%s %d]]', book[:long], chap, book[type], chap)
   end
 
   def generate_prelude(book, chap)
@@ -62,12 +45,12 @@ class Converter
 
     <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
     <head>
-    <title>Holy Bible, Douay-Rheims Translation</title>
+    <title>Holy Bible, Knox Translation</title>
     <link href="../Styles/KnoxStyle.css" type="text/css" rel="stylesheet"/>
     </head>
 
     <body>
-    <h2>#{btitle(book)} #{chap}</h2>
+    <h2>#{book[:long]} #{chap}</h2>
     <nav><p><a href="#{parent}">&#x2191; up</a></p></nav>
     PRELUDE
   end
@@ -79,22 +62,42 @@ class Converter
     PRELUDE
   end
 
+  def extract_notes(txt)
+    notes = {}
+    note_sect = if txt.match(@note_sect) then
+                  $~[1]
+                else
+                  ''
+                end
+    note_sect.scan(@note_p) do |num,words|
+      notes[num] = %Q!<aside class="footnote"><p>[<strong>#{num}</strong>] #{words}</p></aside>!
+    end
+    notes
+  end
+
   def process(fn, bookidx, book, chap)
-    prelude = generate_prelude(book, chap)
+    prelude = generate_prelude(book, chap).strip!
     epilog = generate_epilog()
-    text = extract(IO.read(fn, encoding: 'UTF-8'))
-    text.gsub!(@desc_p,%Q[<aside class="desc"><p>\\1</p></aside>]) 
-    text.gsub!(@note_p,%Q[</p><aside class="footnote"><p>\\1</p></aside><p>]) 
-    # text.gsub!(@underlines,%q[''\1'']) 
-    text.gsub!(@verse_num,%q[<span class="verse">\1</span>&nbsp;])
-    text.gsub!(@emptyp,'')
-    text.strip!
-    [prelude,text,epilog].join('')
+    alltxt = IO.read(fn, encoding: 'UTF-8')
+    notes = extract_notes(alltxt) # hash from '3' to 'note 3...'
+    fragments = [prelude]
+
+    alltxt.scan(@extract_text) do |match|
+      paragraph = "<p>#{match[0].strip}</p>"
+      paragraph.gsub!(@verse_num, %q[<span class="verse">\1</span>&nbsp;])
+      fragments << paragraph
+      paragraph.scan(@note_use) do |nmatch|
+        num = nmatch[0]
+        note_text = notes[num] or raise "Used unknown note #{num}!"
+        fragments << note_text
+      end
+    end
+    (fragments << epilog).join("\n")
   end
 end
 
 # ARGV should all be filenames...
-fn_splitter = %r[^dour/ (\d{2} )  ( \d{3} ) \.htm$]x
+fn_splitter = %r[^ (\d{2} )  ( \d{3} ) \.htm$]x
 converter = Converter.new()
 begin
   ARGV.each do |fn|
@@ -106,7 +109,7 @@ begin
         ofn = out_fn(book,chap)
         STDERR.puts "For #{fn} out file will be #{ofn}"
         wikitext = converter.process(fn,bookidx,book,chap)
-        IO.write(ofn, wikitext, encodine: 'UTF-8')
+        IO.write(ofn, wikitext, encoding: 'UTF-8')
       else
         raise "Nonexistant book/chapter for #{fn}!"
       end
