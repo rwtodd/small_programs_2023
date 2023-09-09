@@ -1,20 +1,24 @@
-/*
-#-=======================================================
-# timecard : add up times on a time sheet
-#
-# Example input:
-#
-#  # Week of 5-01
-#  8:30am - 5:00p 30   Monday
-#  8:30am - 6:00p 30   Tuesday
-#  8:30am - 5:00p 30   Wednesday
-#  8:30am - 5:00p 30   Thursday
-#  8:30am - 5:00p 30   Friday
-#-======================================================= */
+//-=======================================================
+// timecard : add up times on a time sheet
 //  Created by Richard Todd on 9/8/23.
-//
+//-=======================================================
 import Foundation
 
+guard CommandLine.argc <= 1 else {
+   fputs("""
+Example input:
+
+  # Week of 5-01
+  8:30am - 5:00p 30   Monday
+  8:30am - 6:00p 30   Tuesday
+  8:30am - 5:00p 30   Wednesday
+  8:30am - 5:00p 30   Thursday
+  8:30am - 5:00p 30   Friday
+
+
+""", stderr)
+   exit(1)
+}
 
 let FORTY = 40 * 60
 let TWENTY_FOUR = 24 * 60
