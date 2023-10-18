@@ -1,4 +1,4 @@
-#!/bin/bash
+#!bash
 #
 
 # Re-encode movies to HEVC mp4s (-crf around 25) 
@@ -8,82 +8,121 @@
 # hevc, just copy the video and retag it.  If the 
 # video is larger than 720p, then downscale it to 720p.
 #
-txtyellow=$(tput bold)$(tput setaf 3)
-txtreset=$(tput sgr0)
-DownTo720="no"
-CopyHEVC="no"
+DownTo720=no
+CopyHEVC=no
 crflevel=25
-extargs=""
+extargs=''
+dryrun=no
+loglevel='-hide_banner -loglevel error'
+x265parms='-x265-params log-level=error'
+statusarg=''
+keeplarge=no
 
-# print text in yellow
-function yecho() {
-   echo -e "$txtyellow$1$txtreset"
+# print text in dry-run or verbose mode
+function vecho() {
+  if [[ $dryrun = yes || $loglevel = '' ]] ; then
+   echo "$@"
+  fi
 }
 
 # collectinfo <filename>
 function collectinfo() {
   local codec=''
   local height=0
-  ffprobe -i $1 -select_streams v:0 -show_entries stream="height,codec_name" \
-          -of default=noprint_wrappers=1:nokey=0 -v error | \
-          while read line; do 
+  local probeout=$(ffprobe -i $1 -select_streams v:0 -show_entries stream="height,codec_name" \
+	  -of default=noprint_wrappers=1:nokey=0 -v error) 
+  while read line; do 
     case $line in
       codec_name=*)
         codec=${line#*=}
-        yecho "Codec is <$codec>"
-        if [ "$codec" == "hevc" ]; then CopyHEVC="yes"; fi
+        vecho "Codec is <$codec>"
+        if [[ $codec = hevc ]]; then CopyHEVC="yes"; fi
         ;;
       height=*)
         height=${line#*=}
-        yecho "Height is <$height>"
-        if (( height > 720 )); then DownTo720="yes"; fi
+        vecho "Height is <$height>"
+        if [[ (( height > 720 )) && $keeplarge = no ]]; then DownTo720=yes; fi
         ;;
-      *) yecho "unknown line <$line>"
+      *) vecho "unknown line <$line>"
     esac 
-  done
+  done <<< $probeout
 }
 
 # check for input arguments
-while getopts "e:c:h" o; do
+while getopts "c:de:hlsv" o; do
   case "${o}" in
     c) crflevel=$OPTARG
        ;;
-    e) extargs="$OPTARG"
+    d) dryrun=yes
        ;;
-    h) yecho "Usage: $0 [-c <crf>] [-e <extra ffmpeg args>] filenames..."
+    e) extargs=$OPTARG
+       ;;
+    h) echo "Usage: $0 [options] filenames..."
+       echo "  -c crf  to set the CRF level for encoding"
+       echo "  -d      for dry-run (don't actually run ffmpeg)"
+       echo "  -e args to supply extra args to ffmpeg's output section"
+       echo "  -l      large (don't downscale to 720p)"
+       echo "  -s      for encoding status output"
+       echo "  -v      for verbose output" 
        exit 1
-       ;;       
+       ;;
+    l) keeplarge=yes
+       ;;
+    s) statusarg=-stats
+       ;;
+    v) loglevel=''
+       x265parms=''
+       ;;
   esac
 done
 shift $((OPTIND - 1))
 
-while [ $# -gt 0 ]; do
+exitCode=0
+while (( $# > 0 )); do
   infile=$1; shift
-  echo ""
-  yecho "************************************************************"
-  collectinfo $infile
-  converted=$(basename ${infile%.*}).mp4
-  yecho "Going to write output <$converted>"
-  if [ -f $converted ] ; then
-    yecho "$converted already exists!"
+  vecho '************************************************************'
+  vecho "Processing <$infile>"
+  vecho ''
+  if [[ ! -f $infile ]] ; then
+    echo "<$infile> does not exist" >&2
+    exitCode=1
     continue
   fi
-  echo "CopyHEVC   =  $CopyHEVC"
-  echo "DownTo720  =  $DownTo720"
-  echo "CRF Level  =  $crflevel"
-  if [ "$extargs" != "" ]; then
-    echo "Extra args =  <$extargs>"
+
+  converted=$(basename ${infile%.*}).mp4
+  vecho "Going to write output <$converted>"
+  if [[ -e $converted ]] ; then
+    echo "<$converted> output file already exists!" >&2
+    exitCode=1
+    continue
   fi
 
-  if [ $DownTo720 == yes ]; then
-    crflevel=$((crflevel - 1))
-    yecho "Downscaling to 720p. CRF improved to $crflevel"
-    ffmpeg -i $infile -vf scale=-1:720 -sn -c:v libx265 -crf $crflevel -tag:v hvc1 -c:a copy $extargs $converted
-  elif [ $CopyHEVC == yes ]; then
-    yecho "Copying HEVC video (not re-encoding)"
-    ffmpeg -i $infile -sn -c:v copy -tag:v hvc1 -c:a copy $extargs $converted
+  collectinfo $infile
+  vecho "CopyHEVC   =  $CopyHEVC"
+  vecho "DownTo720  =  $DownTo720"
+  vecho "CRF Level  =  $crflevel"
+  if [[ $extargs != '' ]]; then
+    vecho "Extra args =  <$extargs>"
+  fi
+
+  if [[ $dryrun = yes ]]; then 
+    echo 'Would run ffmpeg here, but -d (for dry-run) was given on command line.'
+    continue
+  fi
+
+  # gather common arguments
+  firstargs="$loglevel $statusarg -i $infile -sn"
+  lastargs="-tag:v hvc1 $x265parms -c:a copy $extargs $converted"
+
+  if [[ $DownTo720 = yes ]]; then
+    lowcrf=$((crflevel - 1))
+    vecho "Downscaling to 720p. CRF improved to $lowcrf"
+    ffmpeg $firstargs -vf scale=-1:720 -c:v libx265 -crf $lowcrf $lastargs
+  elif [[ $CopyHEVC = yes ]]; then
+    vecho 'Copying HEVC video (not re-encoding)'
+    ffmpeg $firstargs -c:v copy $lastargs 
   else
-    ffmpeg -i $infile -sn -c:v libx265 -crf $crflevel -tag:v hvc1 -c:a copy $extargs $converted
+    ffmpeg $firstargs -c:v libx265 -crf $crflevel $lastargs
   fi
 done
-
+exit $exitCode
