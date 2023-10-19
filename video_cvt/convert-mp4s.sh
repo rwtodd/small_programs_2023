@@ -17,6 +17,7 @@ loglevel='-hide_banner -loglevel error'
 x265parms='-x265-params log-level=error'
 statusarg=''
 keeplarge=no
+audioparms='-c:a copy'
 
 # print text in dry-run or verbose mode
 function vecho() {
@@ -30,7 +31,7 @@ function collectinfo() {
   local codec=''
   local height=0
   local probeout=$(ffprobe -i "$1" -select_streams v:0 -show_entries stream="height,codec_name" \
-	  -of default=noprint_wrappers=1:nokey=0 -v error) 
+          -of default=noprint_wrappers=1:nokey=0 -v error) 
   while read line; do 
     case $line in
       codec_name=*)
@@ -51,8 +52,12 @@ function collectinfo() {
 }
 
 # check for input arguments
-while getopts "c:de:hlsv" o; do
+while getopts "2:a:c:de:hlsv" o; do
   case "${o}" in
+    2) audioparms="-ac 2 -c:a aac_at -b:a ${OPTARG}k"
+       ;;
+    a) audioparms="-c:a aac_at -b:a ${OPTARG}k"
+       ;;
     c) crflevel=$OPTARG
        ;;
     d) dryrun=yes
@@ -60,12 +65,14 @@ while getopts "c:de:hlsv" o; do
     e) extargs=$OPTARG
        ;;
     h) echo "Usage: $0 [options] filenames..."
-       echo "  -c crf  to set the CRF level for encoding"
-       echo "  -d      for dry-run (don't actually run ffmpeg)"
-       echo "  -e args to supply extra args to ffmpeg's output section"
-       echo "  -l      large (don't downscale to 720p)"
-       echo "  -s      for encoding status output"
-       echo "  -v      for verbose output" 
+       echo "  -2 brate mixdown to 2 channels and use the aac_at aac encoder at <brate> rate"
+       echo "  -a brate use the aac_at aac encoder at <brate> rate"
+       echo "  -c crf   to set the CRF level for encoding"
+       echo "  -d       for dry-run (don't actually run ffmpeg)"
+       echo "  -e args  to supply extra args to ffmpeg's output section"
+       echo "  -l       large (don't downscale to 720p)"
+       echo "  -s       for encoding status output"
+       echo "  -v       for verbose output" 
        exit 1
        ;;
     l) keeplarge=yes
@@ -82,7 +89,7 @@ shift $((OPTIND - 1))
 exitCode=0
 while (( $# > 0 )); do
   infile=$1; shift
-  vecho '************************************************************'
+  vecho '**********************************************************************'
   vecho "Processing <$infile>"
   vecho ''
   if [[ ! -f $infile ]] ; then
@@ -103,6 +110,7 @@ while (( $# > 0 )); do
   vecho "CopyHEVC   =  $CopyHEVC"
   vecho "DownTo720  =  $DownTo720"
   vecho "CRF Level  =  $crflevel"
+  vecho "Audio      =  $audioparms"
   if [[ $extargs != '' ]]; then
     vecho "Extra args =  <$extargs>"
   fi
@@ -128,7 +136,7 @@ while (( $# > 0 )); do
     args+=(-c:v libx265 -crf $curcrf)
   fi
   
-  args+=(-tag:v hvc1 $x265parms -c:a copy $extargs "$converted")
+  args+=(-tag:v hvc1 $x265parms $audioparms $extargs "$converted")
   ffmpeg "${args[@]}"  
 done
 exit $exitCode
