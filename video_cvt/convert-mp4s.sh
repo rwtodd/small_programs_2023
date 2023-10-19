@@ -29,14 +29,14 @@ function vecho() {
 function collectinfo() {
   local codec=''
   local height=0
-  local probeout=$(ffprobe -i $1 -select_streams v:0 -show_entries stream="height,codec_name" \
+  local probeout=$(ffprobe -i "$1" -select_streams v:0 -show_entries stream="height,codec_name" \
 	  -of default=noprint_wrappers=1:nokey=0 -v error) 
   while read line; do 
     case $line in
       codec_name=*)
         codec=${line#*=}
         vecho "Codec is <$codec>"
-        if [[ $codec = hevc ]]; then CopyHEVC="yes"; fi
+        if [[ $codec = hevc ]]; then CopyHEVC=yes; fi
         ;;
       height=*)
         height=${line#*=}
@@ -46,6 +46,8 @@ function collectinfo() {
       *) vecho "unknown line <$line>"
     esac 
   done <<< $probeout
+
+  if [[ $DownTo720 = yes ]]; then CopyHEVC=no; fi  # can't rescale and copy!
 }
 
 # check for input arguments
@@ -89,7 +91,7 @@ while (( $# > 0 )); do
     continue
   fi
 
-  converted=$(basename ${infile%.*}).mp4
+  converted=$(basename "${infile%.*}").mp4
   vecho "Going to write output <$converted>"
   if [[ -e $converted ]] ; then
     echo "<$converted> output file already exists!" >&2
@@ -97,7 +99,7 @@ while (( $# > 0 )); do
     continue
   fi
 
-  collectinfo $infile
+  collectinfo "$infile"
   vecho "CopyHEVC   =  $CopyHEVC"
   vecho "DownTo720  =  $DownTo720"
   vecho "CRF Level  =  $crflevel"
@@ -110,19 +112,23 @@ while (( $# > 0 )); do
     continue
   fi
 
-  # gather common arguments
-  firstargs="$loglevel $statusarg -i $infile -sn"
-  lastargs="-tag:v hvc1 $x265parms -c:a copy $extargs $converted"
-
+  # Build up the ffmpeg command-line in an $args array
+  curcrf=$crflevel
+  args=($loglevel $statusarg -i "$infile" -sn)
   if [[ $DownTo720 = yes ]]; then
-    lowcrf=$((crflevel - 1))
-    vecho "Downscaling to 720p. CRF improved to $lowcrf"
-    ffmpeg $firstargs -vf scale=-1:720 -c:v libx265 -crf $lowcrf $lastargs
-  elif [[ $CopyHEVC = yes ]]; then
-    vecho 'Copying HEVC video (not re-encoding)'
-    ffmpeg $firstargs -c:v copy $lastargs 
-  else
-    ffmpeg $firstargs -c:v libx265 -crf $crflevel $lastargs
+    ((curcrf--))
+    vecho "Downscaling to 720p. CRF improved to $curcrf"
+    args+=(-vf scale=-1:720)
   fi
+
+  if [[ $CopyHEVC = yes ]]; then
+    vecho 'Copying HEVC video (not re-encoding)'
+    args+=(-c:v copy)
+  else
+    args+=(-c:v libx265 -crf $curcrf)
+  fi
+  
+  args+=(-tag:v hvc1 $x265parms -c:a copy $extargs "$converted")
+  ffmpeg "${args[@]}"  
 done
 exit $exitCode
