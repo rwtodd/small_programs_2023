@@ -81,7 +81,6 @@ my $exitCode=0;
 while(my $infile = shift) {
   vecho('**********************************************************************');
   vecho("Processing <$infile>");
-  vecho('');
   if(! -f $infile ) {
     STDERR->say("<$infile> does not exist");
     $exitCode=1;
@@ -127,5 +126,7 @@ while(my $infile = shift) {
   push @cmd, ('-tag:v', 'hvc1', @x265parms, @audioparms, @chapts, @extargs, $converted);
   vecho("Command is <@cmd>");
   system @cmd;
+} continue {
+  vecho('');
 }
 exit($exitCode);
