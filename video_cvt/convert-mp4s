@@ -36,10 +36,10 @@ sub collectinfo($fn) {
     chomp;
     if(m/^codec_name=(.*)$/) {
       vecho("Codec is <$1>");
-      $CopyHEVC = 1 if($1 eq 'hevc');
+      $CopyHEVC = $1 eq 'hevc';
     } elsif(m/^height=(\d+)$/) {
       vecho("Height is <$1>");
-      $DownTo720 = 1 if($1 > 720 && !$keeplarge);
+      $DownTo720 = $1 > 720 && !$keeplarge;
     } else {
       vecho("unknown line <$_>");
     }
@@ -82,7 +82,7 @@ while(my $infile = shift) {
   vecho('**********************************************************************');
   vecho("Processing <$infile>");
   if(! -f $infile ) {
-    STDERR->say("<$infile> does not exist");
+    say STDERR "<$infile> does not exist";
     $exitCode=1;
     next; 
   } 
@@ -90,7 +90,7 @@ while(my $infile = shift) {
   my $converted = (fileparse($infile,qr/\.[^.]*$/) =~ s/[^[:alnum:]]+/_/gr) . '.mp4';
   vecho("Going to write output <$converted>");
   if( -e $converted) {
-    STDERR->say("<$converted> output file already exists!");
+    say STDERR "<$converted> output file already exists!";
     $exitCode = 1;
     next;
   }
