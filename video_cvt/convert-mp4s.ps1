@@ -8,15 +8,21 @@ param(
   [Parameter(ValueFromPipeline)]
   [string[]]$infiles,
   [switch]$Status,
-  [int]$CRF = 25
+  [int]$CRF = 25,
+  [switch]$KeepLarge,
+  [switch]$EncodeAudio
 )
 BEGIN {
   $seeStatus = @()
-  $quietMode = ('-hide_banner', '-loglevel', 'error')
+  $quietMode = @('-hide_banner', '-loglevel', 'error')
   $x265parms = @('-x265-params', 'log-level=error')
   $audioparms = @('-c:a', 'copy')
   $chapts = @('-dn', '-map_chapters', '-1')
   $extargs = @()
+
+  if($EncodeAudio) {
+    $audioparms = @('-ac 1', '-c:a', 'aac', '-b:a', '128k') # mono 128K aac
+  }
 
   if ($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent) {
     $quietMode = @()
@@ -47,6 +53,7 @@ PROCESS {
     # run ffprobe to figure out what to do...
     $CopyVideo = $false
     $DownTo720 = $false
+    $thisCRF = $CRF
     switch -Regex (&ffprobe -i $resolved -select_streams v:0 -show_entries stream="height,codec_name" -of default=noprint_wrappers=1:nokey=0 -v error) {
       '^codec_name=(.*)' {
         Write-Verbose "Codec = $($matches[1])"
@@ -54,33 +61,33 @@ PROCESS {
       }
       '^height=(.*)' {
         Write-Verbose "Height = $($matches[1])"
-        $DownTo720 = [int]($matches[1]) -gt 720
+        $DownTo720 = (-not $KeepLarge) -and [int]($matches[1]) -gt 720
       }
     }
-    if($DownTo720) { $CopyVideo = $false } # can't copy AND downscale!
-    Write-Verbose "`$DownTo720 == $DownTo720"
-    Write-Verbose "`$CopyVideo == $CopyVideo"
-    Write-Verbose "`$CRF       == $CRF"  
+    if($DownTo720) {
+      $CopyVideo = $false # can't copy AND downscale!
+      --$thisCRF          # slightly improve encoding quality if also downscaling
+    } 
+    Write-Verbose "`$DownTo720        == $DownTo720"
+    Write-Verbose "`$CopyVideo        == $CopyVideo"
+    Write-Verbose "`$CRF (this video) == $thisCRF"  
 
+    # Build up the command...
+    $cmd = @('ffmpeg') + $quietMode + $seeStatus + @('-i', "`"{0}`"" -f [WildcardPattern]::Escape($resolved), '-sn')
+    if ($DownTo720) {
+      $cmd += ('-vf','scale=-1:720')
+    }
+
+    if ($CopyVideo) {
+      $cmd += ('-c:v','copy')
+    } else {
+      $cmd += ('-c:v','libx265','-crf',$thisCRF)
+    }
+
+    $cmd += @('-tag:v', 'hvc1') + $x265parms + $audioparms + $chapts + $extargs
+    $cmd += @($converted)
+    Write-Verbose "Command: $cmd"
     if ($PSCmdlet.ShouldProcess("$resolved", "Convert Video")) {
-      $thisCRF = $CRF
-      $cmd = @('ffmpeg') + $quietMode + $seeStatus + @('-i', "`"{0}`"" -f [WildcardPattern]::Escape($resolved), '-sn')
-      if ($DownTo720) {
-	$cmd += ('-vf','scale=-1:720')
-	$thisCRF = $thisCRF - 1
-        Write-Verbose "Downscaling to 720p, lowering CRF to $thisCRF"
-      }
-
-      if ($CopyVideo) {
-        Write-Verbose 'Copying HEVC video (not re-encoding)'
-        $cmd += ('-c:v','copy')
-      } else {
-        $cmd += ('-c:v','libx265','-crf',$thisCRF)
-      }
-
-      $cmd += @('-tag:v', 'hvc1') + $x265parms + $audioparms + $chapts + $extargs
-      $cmd += @($converted)
-      Write-Verbose "Command: $cmd"
       Invoke-Expression ($cmd -join ' ')
     }
   }
