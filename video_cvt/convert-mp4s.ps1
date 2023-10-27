@@ -9,21 +9,24 @@ param(
   [string[]]$infiles,
   [switch]$Status,
   [int]$CRF = 25,
+  [int]$SkipSeconds = 0,
   [switch]$KeepLarge,
   [switch]$EncodeAudio,
   [switch]$KeepHighFPS
 )
 BEGIN {
+  $cmdToRun = @('ffmpeg')
+  $skipparms = @()
   $seeStatus = @()
   $adjustFPS = @()
-  $quietMode = @('-hide_banner', '-loglevel', 'error')
-  $x265parms = @('-x265-params', 'log-level=error')
-  $audioparms = @('-c:a', 'copy')
-  $chapts = @('-dn', '-map_chapters', '-1')
+  $quietMode = @('-hide_banner -loglevel error')
+  $x265parms = @('-x265-params log-level=error')
+  $audioparms = @('-c:a copy')
+  $chapts = @('-dn -map_chapters -1')
   $extargs = @()
 
   if($EncodeAudio) {
-    $audioparms = @('-ac 1', '-c:a', 'aac', '-b:a', '128k') # mono 128K aac
+    $audioparms = @('-ac 1 -c:a aac -b:a 128k') # mono 128K aac
   }
 
   if ($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent) {
@@ -32,6 +35,9 @@ BEGIN {
   }
   if ($Status -or $PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent) {
     $seeStatus = @('-stats')
+  }
+  if ($SkipSeconds -gt 0) {
+     $skipparms = @("-ss $SkipSeconds")
   }
 }
 
@@ -78,7 +84,7 @@ PROCESS {
     } 
     if($DownTo30FPS) {
       $CopyVideo = $false # can't copy AND re-fps it!
-      $adjustFPS = @('-r', '30')
+      $adjustFPS = @('-r 30')
     }
     Write-Verbose "`$DownTo720        == $DownTo720"
     Write-Verbose "`$DownTo30FPS      == $DownTo30FPS"
@@ -86,19 +92,19 @@ PROCESS {
     Write-Verbose "`$CRF (this video) == $thisCRF"  
 
     # Build up the command...
-    $cmd = @('ffmpeg') + $quietMode + $seeStatus + @('-i', "`"{0}`"" -f [WildcardPattern]::Escape($resolved), '-sn')
+    [string[]]$cmd = $cmdToRun + $quietMode + $seeStatus + $skipparms + `
+       ("-i `"{0}`"" -f [WildcardPattern]::Escape($resolved)) + '-sn'
     if ($DownTo720) {
-      $cmd += ('-vf','scale=-1:720')
+      $cmd += '-vf scale=-1:720'
     }
 
     if ($CopyVideo) {
-      $cmd += ('-c:v','copy')
+      $cmd += '-c:v copy'
     } else {
-      $cmd += ('-c:v','libx265') + $adjustFPS + ('-crf',$thisCRF)
+      $cmd = $cmd + '-c:v libx265' + $adjustFPS + "-crf $thisCRF"
     }
 
-    $cmd += @('-tag:v', 'hvc1') + $x265parms + $audioparms + $chapts + $extargs
-    $cmd += @($converted)
+    $cmd = $cmd + '-tag:v hvc1' + $x265parms + $audioparms + $chapts + $extargs + $converted
     Write-Verbose "Command: $cmd"
     if ($PSCmdlet.ShouldProcess("$resolved", "Convert Video")) {
       Invoke-Expression ($cmd -join ' ')
