@@ -3,24 +3,22 @@ use v5.36;
 use Getopt::Std;
 use File::Basename qw(fileparse);
 
-# Re-encode movies to HEVC mp4s (-crf around 25) 
-# with the hvc1 tag so apple/quicktime understands 
-# what's happening... 
-# Just copy the audio as-is.  If the video is already 
-# hevc, just copy the video and retag it.  If the 
-# video is larger than 720p, then downscale it to 720p.
-#
-my $DownTo720 = undef;
-my $CopyHEVC = undef;
-my $crflevel = undef;
-my @chapts = qw/-dn -map_chapters -1/;
-my @extargs = ();
-my $dryrun = undef;
-my @quietMode = qw/-hide_banner -loglevel error/;
-my @x265parms = qw/-x265-params log-level=error/;
-my @statusarg = ();
-my $keeplarge = undef;
-my @audioparms = qw/-c:a copy/;
+# All the defaults ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+my $DownTo720 = undef;    # no downscaling
+my $DownTo30FPS = undef;  # no framerate adjustment
+my $CopyHEVC = undef;     # no straight video copy
+my $crflevel = undef;     # default of 25 CRF
+my @chapts = qw/-dn -map_chapters -1/; # don't copy chapts
+my @extargs = ();         # no extra arguments
+my $dryrun = undef;       # not a dry run
+my @quietMode = qw/-hide_banner -loglevel error/; # quiet
+my @x265parms = qw/-x265-params log-level=error/; # quiet
+my @statusarg = ();       # don't ask for status
+my $keeplarge = undef;    # don't downscale to 720p
+my $keepfps   = undef;    # don't cut FPS to 30fps 
+my @audioparms = qw/-c:a copy/; # copy audio by default
+my $aac_enc = ($^O eq 'darwin') ? 'aac_at' : 'aac';
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # print text in dry-run or verbose mode
 sub vecho {
@@ -30,7 +28,7 @@ sub vecho {
 # collectinfo <filename>
 sub collectinfo($fn) {
   open(my $probe, '-|', 
-      "ffprobe -i \"$fn\" -select_streams v:0 -show_entries stream='height,codec_name' " . 
+      "ffprobe -i \"$fn\" -select_streams v:0 -show_entries stream='height,codec_name,r_frame_rate' " . 
       '-of default=noprint_wrappers=1:nokey=0 -v error');
   while(<$probe>) {
     chomp;
@@ -40,25 +38,31 @@ sub collectinfo($fn) {
     } elsif(m/^height=(\d+)$/) {
       vecho("Height is <$1>");
       $DownTo720 = $1 > 720 && !$keeplarge;
+    } elsif(m/^r_frame_rate=([0-9\/]+)$/) {
+      vecho("Frame rate = <$1>");
+      my $frate = eval $1;
+      $DownTo30FPS = !$keepfps && ($frate > 30.0);
     } else {
       vecho("unknown line <$_>");
     }
   }
   close($probe);
-  if($DownTo720) { $CopyHEVC = undef } # can't rescale and copy!
+  if($DownTo720 || $DownTo30FPS) { $CopyHEVC = undef } # can't adjust and copy!
 }
 
 # check for input arguments
 my %opts;
-getopts('2:a:c:de:hlmsv', \%opts) or die "Bad options!";
+getopts('1:2:a:c:de:hlmsv', \%opts) or die "Bad options!";
 if($opts{h}) {
   say <<'USAGE';
 Usage: convert-mp4s [options] filenames...
-  -2 brate   mixdown to 2 channels and use the aac_at aac encoder at <brate> rate
-  -a brate   use the aac_at aac encoder at <brate> rate
+  -1 brate   mixdown to 1 channel and use the aac encoder at <brate> rate
+  -2 brate   mixdown to 2 channels and use the aac encoder at <brate> rate
+  -a brate   use the aac encoder at <brate> rate
   -c crf     to set the CRF level for encoding (default 25)
   -d         for dry-run (don't actually run ffmpeg)
   -e args    to supply extra args to ffmpeg's output section
+  -f         keep high framerate (don't reframe to 30fps)
   -l         large (don't downscale to 720p)
   -m         include metadata for chapters (removed by default)
   -s         for encoding status output
@@ -67,13 +71,15 @@ USAGE
   exit(1);
 }
 
-@audioparms = (qw/-c:a aac_at -b:a/, "$opts{a}k") if $opts{a};
-@audioparms = (qw/-ac 2 -c:a aac_at -b:a/, "$opts{2}k") if $opts{2};
+@audioparms = ('-ac', '1', '-c:a', $aac_enc, '-b:a', "$opts{1}k") if $opts{1};
+@audioparms = ('-ac', '2', '-c:a', $aac_enc, '-b:a', "$opts{2}k") if $opts{2};
+@audioparms = ('-c:a', $aac_enc, '-b:a', "$opts{a}k") if $opts{a};
 $crflevel = $opts{c} // 25;
 $dryrun = 1 if $opts{d};
 @chapts = () if $opts{m};
 @extargs = split(' ',$opts{e}) if $opts{e};
 $keeplarge = 1 if $opts{l};
+$keepfps = 1 if $opts{f};
 @statusarg = qw/-stats/ if $opts{s};
 @quietMode = @x265parms = () if $opts{v};
 
@@ -96,11 +102,12 @@ while(my $infile = shift) {
   }
 
   collectinfo($infile);
-  vecho('CopyHEVC   =  ' . ($CopyHEVC?'yes':'no'));
-  vecho('DownTo720  =  ' . ($DownTo720?'yes':'no'));
-  vecho("CRF Level  =  $crflevel");
-  vecho("Audio args =  <@audioparms>");
-  vecho("Extra args =  <@extargs>") if @extargs;
+  vecho('CopyHEVC    =  ' . ($CopyHEVC?'yes':'no'));
+  vecho('DownTo720   =  ' . ($DownTo720?'yes':'no'));
+  vecho('DownTo30FPS =  ' . ($DownTo30FPS?'yes':'no'));
+  vecho("CRF Level   =  $crflevel");
+  vecho("Audio args  =  <@audioparms>");
+  vecho("Extra args  =  <@extargs>") if @extargs;
 
   if ($dryrun) {
     say 'Would run ffmpeg here, but -d (for dry-run) was given on command line.';
@@ -117,10 +124,11 @@ while(my $infile = shift) {
   }
 
   if ($CopyHEVC) {
-    vecho('Copying HEVC video (not re-encoding)');
     push @cmd, qw/-c:v copy/;
   } else {
-    push @cmd, (qw/-c:v libx265 -crf/, $thisCRF);
+    push @cmd, qw/-c:v libx265/;
+    push @cmd, qw/-r 30/ if($DownTo30FPS);
+    push @cmd, ('-crf', $thisCRF);
   }
   
   push @cmd, ('-tag:v', 'hvc1', @x265parms, @audioparms, @chapts, @extargs, $converted);
@@ -130,3 +138,70 @@ while(my $infile = shift) {
   vecho('');
 }
 exit($exitCode);
+
+__END__
+
+=head1 NAME
+
+convert-mp4s -- a utility to convert video files to HEVC mp4s via ffmpeg
+
+=head1 SYNOPSYS
+
+  convert-mp4s [options] filenames...
+
+=head1 DESCRIPTION
+
+A wrapper for C<ffmpeg> that converts video files to 720p, 30fps, HEVC mp4s.
+Options change these defaults.
+
+=head1 OPTIONS
+
+=over 4
+
+=item -1 rate
+
+Converts the audio to mono at C<rate> kbits/second AAC. On mac it uses the superior C<aac_at> encoder.
+
+=item -2 rate
+
+Converts the audio to stereo at C<rate> kbits/second AAC. On mac it uses the superior C<aac_at> encoder.
+
+=item -a rate
+
+Re-encodes the audio at C<rate> kbits/second AAC. On mac it uses the superior C<aac_at> encoder.
+
+=item -c crf
+
+Sets the CRF level for encoding (default 25). When the picture size must be downscaled to 720p, the CRF
+level is improved by 1.  Lower CRF numbers give higher bit-rates.
+
+=item -d 
+
+Indicates that this is a dry-run (don't actually run C<ffmpeg>).
+
+=item -e args
+
+Use this to supply extra args to C<ffmpeg>'s output section.
+
+=item -f 
+
+Keep a high framerate (don't reframe to 30fps).
+
+=item -l
+
+Keep a large video size (don't downscale to 720p).
+
+=item  -m 
+
+Include metadata for chapters (removed by default).
+
+=item  -s
+
+Writes C<ffmpeg> status during encoding.
+
+=item -v
+
+Requests verbose output.
+
+=back
+
