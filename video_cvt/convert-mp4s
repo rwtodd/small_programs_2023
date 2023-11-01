@@ -14,6 +14,7 @@ my $dryrun = undef;       # not a dry run
 my @quietMode = qw/-hide_banner -loglevel error/; # quiet
 my @x265parms = qw/-x265-params log-level=error/; # quiet
 my @statusarg = ();       # don't ask for status
+my @skipargs = ();        # don't skip any seconds of video
 my $keeplarge = undef;    # don't downscale to 720p
 my $keepfps   = undef;    # don't cut FPS to 30fps 
 my @audioparms = qw/-c:a copy/; # copy audio by default
@@ -39,8 +40,8 @@ sub collectinfo($fn) {
       vecho("Height is <$1>");
       $DownTo720 = $1 > 720 && !$keeplarge;
     } elsif(m/^r_frame_rate=([0-9\/]+)$/) {
-      vecho("Frame rate = <$1>");
-      my $frate = eval $1;
+      my $frate = eval $1 or die "Couldn't evaluate the frame rate! <$1>";
+      vecho("Frame rate = <$frate>");
       $DownTo30FPS = !$keepfps && ($frate > 30.0);
     } else {
       vecho("unknown line <$_>");
@@ -52,7 +53,7 @@ sub collectinfo($fn) {
 
 # check for input arguments
 my %opts;
-getopts('1:2:a:c:de:hlmsv', \%opts) or die "Bad options!";
+getopts('1:2:a:c:de:fhlmsS:v', \%opts) or die "Bad options!";
 if($opts{h}) {
   say <<'USAGE';
 Usage: convert-mp4s [options] filenames...
@@ -66,6 +67,7 @@ Usage: convert-mp4s [options] filenames...
   -l         large (don't downscale to 720p)
   -m         include metadata for chapters (removed by default)
   -s         for encoding status output
+  -S secs    skip the given number of seconds of video
   -v         for verbose output
 USAGE
   exit(1);
@@ -81,6 +83,7 @@ $dryrun = 1 if $opts{d};
 $keeplarge = 1 if $opts{l};
 $keepfps = 1 if $opts{f};
 @statusarg = qw/-stats/ if $opts{s};
+@skipargs = ('-ss', $opts{S}) if $opts{S};
 @quietMode = @x265parms = () if $opts{v};
 
 my $exitCode=0;
@@ -116,7 +119,7 @@ while(my $infile = shift) {
 
   # Build up the ffmpeg command-line in an $args array
   my $thisCRF = $crflevel;
-  my @cmd = ('ffmpeg', @quietMode, @statusarg, '-i', $infile, '-sn');
+  my @cmd = ('ffmpeg', @quietMode, @statusarg, @skipargs, '-i', $infile, '-sn');
   if ($DownTo720) {
     $thisCRF--;
     vecho("Downscaling to 720p. CRF improved to $thisCRF");
@@ -133,7 +136,7 @@ while(my $infile = shift) {
   
   push @cmd, ('-tag:v', 'hvc1', @x265parms, @audioparms, @chapts, @extargs, $converted);
   vecho("Command is <@cmd>");
-  system @cmd;
+  system(@cmd) == 0 or die "ffmpeg died! <$?>";
 } continue {
   vecho('');
 }
@@ -191,13 +194,17 @@ Keep a high framerate (don't reframe to 30fps).
 
 Keep a large video size (don't downscale to 720p).
 
-=item  -m 
+=item -m 
 
 Include metadata for chapters (removed by default).
 
-=item  -s
+=item -s
 
 Writes C<ffmpeg> status during encoding.
+
+=item -S secs
+
+Skips C<secs> seconds from the front of the video.
 
 =item -v
 
