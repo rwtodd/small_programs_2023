@@ -11,7 +11,7 @@ param(
   [int]$CRF = 25,
   [int]$SkipSeconds = 0,
   [switch]$KeepLarge,
-  [switch]$EncodeAudio,
+  [int[]]$EncodeAudio = @(),
   [switch]$KeepHighFPS
 )
 BEGIN {
@@ -26,7 +26,12 @@ BEGIN {
   $extargs = @()
 
   if($EncodeAudio) {
-    $audioparms = @('-ac 1 -c:a aac -b:a 128k') # mono 128K aac
+    $audioparms = @()
+    # the format is Kbps, [channels]
+    if($EncodeAudio.Length -gt 1) {
+      $audioparms += "-ac $($EncodeAudio[1])"
+    }
+    $audioparms += "-c:a $($IsMacOS ? 'aac_at' : 'aac') -b:a $($EncodeAudio[0])k"
   }
 
   if ($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent) {
@@ -90,6 +95,7 @@ PROCESS {
     Write-Verbose "`$DownTo30FPS      == $DownTo30FPS"
     Write-Verbose "`$CopyVideo        == $CopyVideo"
     Write-Verbose "`$CRF (this video) == $thisCRF"  
+    Write-Verbose "`$audioparms       == $audioparms"
 
     # Build up the command...
     [string[]]$cmd = $cmdToRun + $quietMode + $seeStatus + $skipparms + `
