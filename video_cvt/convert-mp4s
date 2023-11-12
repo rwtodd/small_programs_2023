@@ -105,24 +105,20 @@ while(my $infile = shift) {
   }
 
   collectinfo($infile);
+  my $thisCRF = $crflevel - ($DownTo720 ? 1 : 0);
+
   vecho('CopyHEVC    =  ' . ($CopyHEVC?'yes':'no'));
   vecho('DownTo720   =  ' . ($DownTo720?'yes':'no'));
   vecho('DownTo30FPS =  ' . ($DownTo30FPS?'yes':'no'));
-  vecho("CRF Level   =  $crflevel");
+  vecho("CRF Level   =  $thisCRF");
   vecho("Audio args  =  <@audioparms>");
   vecho("Extra args  =  <@extargs>") if @extargs;
 
-  if ($dryrun) {
-    say 'Would run ffmpeg here, but -d (for dry-run) was given on command line.';
-    next;
-  } 
 
   # Build up the ffmpeg command-line in an $args array
-  my $thisCRF = $crflevel;
   my @cmd = ('ffmpeg', @quietMode, @statusarg, @skipargs, '-i', $infile, '-sn');
   if ($DownTo720) {
-    $thisCRF--;
-    vecho("Downscaling to 720p. CRF improved to $thisCRF");
+    vecho("Downscaling to 720p. CRF improved from $crflevel to $thisCRF.");
     push @cmd, qw/-vf scale=-1:720/;
   }
 
@@ -136,6 +132,12 @@ while(my $infile = shift) {
   
   push @cmd, ('-tag:v', 'hvc1', @x265parms, @audioparms, @chapts, @extargs, $converted);
   vecho("Command is <@cmd>");
+
+  if ($dryrun) {
+    say 'Would run ffmpeg here, but -d (for dry-run) was given on command line.';
+    next;
+  } 
+
   system(@cmd) == 0 or die "ffmpeg died! <$?>";
 } continue {
   vecho('');
