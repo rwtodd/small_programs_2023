@@ -5,7 +5,7 @@ SYNOPSIS:
   binfind <hex-str> <filenames>
 
 DESSCRIPTION:
-  Identifies all occurrences of a binary sequence (given in hex notation, 
+  Identifies all occurrences of a binary sequence (given in hex notation,
   e.g., 1e1d1f).  It prints out the location of the match, and gives
   context from either side of the match, printing 16 numbers total.
 '''
