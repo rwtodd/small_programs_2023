@@ -68,7 +68,15 @@ PROCESS {
     $DownTo720 = $false
     $DownTo30FPS = $false
     $thisCRF = $CRF
-    switch -Regex (&ffprobe -i $resolved -select_streams v:0 -show_entries stream="height,codec_name,r_frame_rate" -of default=noprint_wrappers=1:nokey=0 -v error) {
+    switch -Regex (&ffprobe -i $resolved -select_streams v:0 -show_entries stream="height,codec_name,r_frame_rate,duration" -of default=noprint_wrappers=1:nokey=0 -v error) {
+      '^duration=(.*)' {
+        $seconds = $matches[1]
+        $duration = "{0}:{1:D2}" -f [int]([math]::Floor($seconds / 60.0 / 60.0)), [int]([math]::Floor( ($seconds / 60) % 60 ))
+        if($Status -and -not $PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent) {
+          Write-Output "Duration = $duration"
+        }
+        Write-Verbose "Duration = $duration"
+      }
       '^codec_name=(.*)' {
         Write-Verbose "Codec = $($matches[1])"
         $CopyVideo = $matches[1] -eq 'hevc'
