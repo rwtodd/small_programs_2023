@@ -12,6 +12,8 @@ param(
   [int]$SkipSeconds = 0,
   [switch]$KeepLarge,
   [int[]]$EncodeAudio = @(),
+  [int]$Length=0,
+  [switch]$Denoise,
   [switch]$KeepHighFPS
 )
 BEGIN {
@@ -19,6 +21,7 @@ BEGIN {
   $skipparms = @()
   $seeStatus = @()
   $adjustFPS = @()
+  $filters = @()
   $quietMode = @('-hide_banner -loglevel error')
   $x265parms = @('-x265-params log-level=error')
   $audioparms = @('-c:a copy')
@@ -69,7 +72,7 @@ PROCESS {
     $DownTo30FPS = $false
     $thisCRF = $CRF
     switch -Regex (&ffprobe -i $resolved -select_streams v:0 -show_entries stream="height,codec_name,r_frame_rate,duration" -of default=noprint_wrappers=1:nokey=0 -v error) {
-      '^duration=(.*)' {
+      '^duration=([0-9.]+)' {
         $seconds = $matches[1]
         $duration = "{0}:{1:D2}" -f [int]([math]::Floor($seconds / 60.0 / 60.0)), [int]([math]::Floor( ($seconds / 60) % 60 ))
         if($Status -and -not $PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent) {
@@ -91,9 +94,14 @@ PROCESS {
         $DownTo30FPS = (-not $KeepHighFPS) -and $curfps -gt 30.0
       }
     }
+    if($Denoise) {
+      $CopyVideo = $false # can't copy AND denoise!
+      $filters += "hqdn3d"
+    }
     if($DownTo720) {
       $CopyVideo = $false # can't copy AND downscale!
       --$thisCRF          # slightly improve encoding quality if also downscaling
+      $filters += "scale=-1:720,crop='iw-mod(iw,2)':'ih-mod(ih,2)'"
     } 
     if($DownTo30FPS) {
       $CopyVideo = $false # can't copy AND re-fps it!
@@ -108,8 +116,9 @@ PROCESS {
     # Build up the command...
     [string[]]$cmd = $cmdToRun + $quietMode + $seeStatus + $skipparms + `
        ("-i `"{0}`"" -f [WildcardPattern]::Escape($resolved)) + '-sn'
-    if ($DownTo720) {
-      $cmd += '-vf scale=-1:720'
+    if ($filters) {
+      $cmd += '-vf'
+      $cmd += ($filters -join ',')
     }
 
     if ($CopyVideo) {
@@ -118,11 +127,19 @@ PROCESS {
       $cmd = $cmd + '-c:v libx265' + $adjustFPS + "-crf $thisCRF"
     }
 
-    $cmd = $cmd + '-tag:v hvc1' + $x265parms + $audioparms + $chapts + $extargs + $converted
-    Write-Verbose "Command: $cmd"
+    $cmd = $cmd + '-tag:v hvc1' + $x265parms + $audioparms + $chapts 
+
+    if ($Length -gt 0) {
+      $cmd += "-to $Length"
+    }
+
+    $cmd = $cmd + $extargs + $converted
+
     if ($PSCmdlet.ShouldProcess("$resolved", "Convert Video")) {
+      Write-Verbose "Command is: $cmd"
       Invoke-Expression ($cmd -join ' ')
+    } else {
+      Write-Output "Command would be: $cmd"
     }
   }
 }
-
