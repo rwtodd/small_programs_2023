@@ -20,7 +20,6 @@ BEGIN {
   $cmdToRun = @('ffmpeg')
   $skipparms = @()
   $seeStatus = @()
-  $adjustFPS = @()
   $quietMode = @('-hide_banner -loglevel error')
   $x265parms = @('-x265-params log-level=error')
   $audioparms = @('-c:a copy')
@@ -50,6 +49,7 @@ BEGIN {
 
 PROCESS {
   $filters = @()
+  $adjustFPS = @()
 
   foreach ($fl in $infiles) {
     if (-not (Test-Path -LiteralPath $fl)) {
