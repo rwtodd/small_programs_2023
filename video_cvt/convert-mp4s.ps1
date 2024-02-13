@@ -71,28 +71,33 @@ PROCESS {
     $DownTo720 = $false
     $DownTo30FPS = $false
     $thisCRF = $CRF
-    switch -Regex (&ffprobe -i $resolved -select_streams v:0 -show_entries stream="height,codec_name,r_frame_rate,duration" -of default=noprint_wrappers=1:nokey=0 -v error) {
-      '^duration=([0-9.]+)' {
-        $seconds = $matches[1]
+    $metadata = &ffprobe -v quiet -print_format json -show_format -show_streams $resolved | convertfrom-json
+
+    # get duration if available
+    $seconds = $metadata.format.duration
+    if($seconds) {
         $duration = "{0}:{1:D2}" -f [int]([math]::Floor($seconds / 60.0 / 60.0)), [int]([math]::Floor( ($seconds / 60) % 60 ))
         if($Status -and -not $PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent) {
           Write-Output "Duration = $duration"
         }
         Write-Verbose "Duration = $duration"
-      }
-      '^codec_name=(.*)' {
-        Write-Verbose "Codec = $($matches[1])"
-        $CopyVideo = $matches[1] -eq 'hevc'
-      }
-      '^height=(.*)' {
-        Write-Verbose "Height = $($matches[1])"
-        $DownTo720 = (-not $KeepLarge) -and [int]($matches[1]) -gt 720
-      }
-      '^r_frame_rate=([0-9/]*)' {
-        [double]$curfps = Invoke-Expression $matches[1]
-        Write-Verbose "FPS = $curfps"
-        $DownTo30FPS = (-not $KeepHighFPS) -and $curfps -gt 30.0
-      }
+    }
+    foreach($s in $metadata.streams) {
+        Write-Verbose "Codec = $($s.codec_name)"
+        $CopyVideo = $CopyVideo -or ($s.codec_name -eq 'hevc')
+
+        if($s.height) {
+           Write-Verbose "Height = $($s.height)"
+           $DownTo720 = (-not $KeepLarge) -and ([int]($s.height) -gt 720)
+        }
+
+        if($s.r_frame_rate -match '[0-9/]*') {
+           if($s.r_frame_rate -notmatch '/0$') {
+             [double]$curfps = Invoke-Expression $s.r_frame_rate
+              Write-Verbose "FPS = $curfps"
+              $DownTo30FPS = (-not $KeepHighFPS) -and $curfps -gt 30.0
+           }
+        }
     }
     if($Denoise) {
       $CopyVideo = $false # can't copy AND denoise!
