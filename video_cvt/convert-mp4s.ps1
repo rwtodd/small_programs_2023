@@ -11,10 +11,12 @@ param(
   [int]$CRF = 25,
   [int]$SkipSeconds = 0,
   [switch]$KeepLarge,
+  [switch]$KeepPixFmt,
   [int[]]$EncodeAudio = @(),
   [int]$Length=0,
   [switch]$Denoise,
-  [switch]$KeepHighFPS
+  [switch]$KeepHighFPS,
+  [switch]$ShowFFMpeg
 )
 BEGIN {
   $cmdToRun = @('ffmpeg')
@@ -26,6 +28,9 @@ BEGIN {
   $chapts = @('-dn -map_chapters -1')
   $extargs = @()
 
+  if($ShowFFMpeg) {
+    $quietMode = @()
+  }
   if($EncodeAudio) {
     $audioparms = @()
     # the format is Kbps, [channels]
@@ -36,7 +41,6 @@ BEGIN {
   }
 
   if ($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent) {
-    $quietMode = @()
     $x265parms = @()
   }
   if ($Status -or $PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent) {
@@ -69,6 +73,7 @@ PROCESS {
     # run ffprobe to figure out what to do...
     $CopyVideo = $false
     $DownTo720 = $false
+    $PixFmt = $false
     $DownTo30FPS = $false
     $thisCRF = $CRF
     $metadata = &ffprobe -v quiet -print_format json -show_format -show_streams $resolved | convertfrom-json
@@ -82,13 +87,21 @@ PROCESS {
         }
         Write-Verbose "Duration = $duration"
     }
+    [int]$seenHeight = 0
     foreach($s in $metadata.streams) {
         Write-Verbose "Codec = $($s.codec_name)"
+        if ($s.codec_name -match 'jpeg$') { continue; }
         $CopyVideo = $CopyVideo -or ($s.codec_name -eq 'hevc')
 
         if($s.height) {
            Write-Verbose "Height = $($s.height)"
+           $seenHeight = [Math]::Max($seenHeight, [int]($s.height))
            $DownTo720 = (-not $KeepLarge) -and ([int]($s.height) -gt 720)
+        }
+
+        if($s.pix_fmt) {
+           Write-Verbose "Pix Fmt = $($s.pix_fmt)"
+           $PixFmt = (-not $KeepPixFmt) -and ($s.pix_fmt -ne "yuv420p")
         }
 
         if($s.r_frame_rate -match '[0-9/]*') {
@@ -108,6 +121,10 @@ PROCESS {
       --$thisCRF          # slightly improve encoding quality if also downscaling
       $filters += "scale=-1:720,crop='iw-mod(iw,2)':'ih-mod(ih,2)'"
     } 
+    if($PixFmt) {
+      $CopyVideo = $false # can't copy AND filter
+      $filters += "format=yuv420p"
+    }
     if($DownTo30FPS) {
       $CopyVideo = $false # can't copy AND re-fps it!
       $adjustFPS = @('-r 30')
@@ -115,6 +132,7 @@ PROCESS {
     Write-Verbose "`$DownTo720        == $DownTo720"
     Write-Verbose "`$DownTo30FPS      == $DownTo30FPS"
     Write-Verbose "`$CopyVideo        == $CopyVideo"
+    Write-Verbose "`$PixFmt           == $PixFmt"
     Write-Verbose "`$CRF (this video) == $thisCRF"  
     Write-Verbose "`$audioparms       == $audioparms"
 
